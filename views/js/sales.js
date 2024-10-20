@@ -57,7 +57,7 @@ $(".salesTable tbody").on("click", "button.addProductSale", function(){
           	/*=============================================
           	AVOID ADDING THE PRODUCT WHEN ITS STOCK IS ZERO
           	=============================================*/
-			/* LOG ON TO codeastro.com FOR MORE PROJECTS */
+		
 
           	if(stock == 0){
 
@@ -122,7 +122,7 @@ $(".salesTable tbody").on("click", "button.addProductSale", function(){
 
 	    	// ADD TAX
 		        
-	        // addTax()
+	        addTax()
 
 	        // GROUP PRODUCTS IN JSON FORMAT
 
