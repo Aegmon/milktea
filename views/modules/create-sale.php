@@ -193,7 +193,20 @@ if($_SESSION["profile"] == "Special"){
                             
                             <tr>
                               
-                        
+                              <!-- <td style="width: 50%">
+
+                                <div class="input-group">
+                                  
+                                  <input type="number" class="form-control" name="newTaxSale" id="newTaxSale" placeholder="0" min="0" required>
+
+                                  <input type="hidden" name="newTaxPrice" id="newTaxPrice" required>
+
+                                  <input type="hidden" name="newNetPrice" id="newNetPrice" required>
+                                  
+                                  <span class="input-group-addon"><i class="fa fa-percent"></i></span>
+
+                                </div>
+                              </td> -->
 
                               <td style="width: 50%">
 

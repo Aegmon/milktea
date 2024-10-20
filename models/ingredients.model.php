@@ -119,4 +119,9 @@ static public function mdlSubtractData($table, $data) {
         $stmt->close();
         $stmt = null;
     }
+
+
+
+    
 }
+

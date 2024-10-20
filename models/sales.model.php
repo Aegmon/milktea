@@ -43,13 +43,12 @@ class ModelSales{
 	/* --LOG ON TO codeastro.com FOR MORE PROJECTS-- */
 	static public function mdlAddSale($table, $data){
 
-$stmt = Connection::connect()->prepare("INSERT INTO $table(code, idCustomer, idSeller, products, netPrice, totalPrice, paymentMethod) VALUES (:code, :idCustomer, :idSeller, :products, :netPrice, :totalPrice, :paymentMethod)");
+$stmt = Connection::connect()->prepare("INSERT INTO $table(code, idCustomer, idSeller, products, totalPrice, paymentMethod) VALUES (:code, :idCustomer, :idSeller, :products, :totalPrice, :paymentMethod)");
 
 		$stmt->bindParam(":code", $data["code"], PDO::PARAM_INT);
 		$stmt->bindParam(":idCustomer", $data["idCustomer"], PDO::PARAM_INT);
 		$stmt->bindParam(":idSeller", $data["idSeller"], PDO::PARAM_INT);
 		$stmt->bindParam(":products", $data["products"], PDO::PARAM_STR);
-		$stmt->bindParam(":netPrice", $data["netPrice"], PDO::PARAM_STR);
 		$stmt->bindParam(":totalPrice", $data["totalPrice"], PDO::PARAM_STR);
 		$stmt->bindParam(":paymentMethod", $data["paymentMethod"], PDO::PARAM_STR);
 
@@ -188,7 +187,7 @@ $stmt = Connection::connect()->prepare("INSERT INTO $table(code, idCustomer, idS
 
 	static public function mdlAddingTotalSales($table){	
 
-		$stmt = Connection::connect()->prepare("SELECT SUM(netPrice) as total FROM $table");
+		$stmt = Connection::connect()->prepare("SELECT SUM(totalPrice) as total FROM $table");
 
 		$stmt -> execute();
 

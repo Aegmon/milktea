@@ -55,7 +55,7 @@
 			if ($_SESSION["profile"] == "Administrator") {
 				echo '
 					<li class="treeview"> 
-						<a href="#">
+						  <a href="#" class="dropdown-toggle" data-toggle="dropdown">
 							<i class="fa fa-th"></i>
 							<span>Inventory Management</span>
 							<span class="pull-right-container">

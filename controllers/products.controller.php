@@ -11,6 +11,12 @@ class controllerProducts {
         return $answer;
     }
 
+
+        static public function ctrShowProductsIngredients($item, $value, $order) {
+        $table = "productsingredients";
+        $answer = ProductsModel::mdlShowProductsWithIngredients($table, $item, $value, $order);
+        return $answer;
+    }
     /*=============================================
     CREATE PRODUCTS
     =============================================*/

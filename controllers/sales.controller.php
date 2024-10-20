@@ -383,28 +383,42 @@ static public function ctrCreateSale(){
 			$products =  json_decode($getSale["products"], true);
 
 			$totalPurchasedProducts = array();
-
+           error_log("Found ingredient ID: " . $products);
 			foreach ($products as $key => $value) {
 
 				array_push($totalPurchasedProducts, $value["quantity"]);
 				
-				$tableProducts = "products";
+			    $tableProducts = "products";
 
 				$item = "id";
 				$valueProductId = $value["id"];
 				$order = "id";
 
+				// Fetch product details
 				$getProduct = ProductsModel::mdlShowProducts($tableProducts, $item, $valueProductId, $order);
 
+				// Update sales count
 				$item1a = "sales";
-				$value1a = $getProduct["sales"] - $value["quantity"];
-
+				$value1a = $value["quantity"] + $getProduct["sales"];
 				$newSales = ProductsModel::mdlUpdateProduct($tableProducts, $item1a, $value1a, $valueProductId);
 
+				// Update stock
 				$item1b = "stock";
-				$value1b = $value["quantity"] + $getProduct["stock"];
+				$value1b = $value["stock"];
+				$newStock = ProductsModel::mdlUpdateProduct($tableProducts, $item1b, $value1b, $valueProductId);
 
-				$stockNew = ProductsModel::mdlUpdateProduct($tableProducts, $item1b, $value1b, $valueProductId);
+				// Get product ingredients
+				$tableProductIngredients = "productsingredients";
+				$ingredientData = ProductsModel::mdlShowProductsWithIngredients($tableProductIngredients, $item, $valueProductId);
+
+				// Check if ingredients data is returned and get the ingredient ID
+				if ($ingredientData) {
+					$ingredientsID = $ingredientData["id"]; // Extract the ID from the result
+					error_log("Found ingredient ID: " . $ingredientsID);
+				} else {
+					error_log("No ingredients found for product ID: " . $valueProductId);
+				}
+
 
 			}
 

@@ -28,115 +28,104 @@ ADDING PRODUCTS TO THE SALE FROM THE TABLE
 
 $(".salesTable tbody").on("click", "button.addProductSale", function(){
 
+    var idProduct = $(this).attr("idProduct");
 
-	var idProduct = $(this).attr("idProduct");
+    // Remove the "addProductSale" class to prevent adding the same product again
+    $(this).removeClass("btn-primary addProductSale");
+    $(this).addClass("btn-default");
 
-	$(this).removeClass("btn-primary addProductSale");
-
-	$(this).addClass("btn-default");
-
-	var datum = new FormData();
+    var datum = new FormData();
     datum.append("idProduct", idProduct);
 
-     $.ajax({
+    $.ajax({
+        url: "ajax/products.ajax.php",
+        method: "POST",
+        data: datum,
+        cache: false,
+        contentType: false,
+        processData: false,
+        dataType: "json",
+        success: function(answer) {
 
-     	url:"ajax/products.ajax.php",
-      	method: "POST",
-      	data: datum,
-      	cache: false,
-      	contentType: false,
-      	processData: false,
-      	dataType:"json",
-      	success:function(answer){
+            // Log the entire response to check what is returned
+            console.log("AJAX Response:", answer);
 
-      	    var description = answer["description"];
-          	var stock = answer["stock"];
-          	var price = answer["sellingPrice"];
+            if (!answer) {
+                console.error("No response from server.");
+                return;
+            }
 
+            if (typeof answer !== "object") {
+                console.error("Unexpected response type:", answer);
+                return;
+            }
 
-          	/*=============================================
-          	AVOID ADDING THE PRODUCT WHEN ITS STOCK IS ZERO
-          	=============================================*/
-		
+            // Logging each field to see if they are properly retrieved
+            var description = answer["description"];
+            var stock = answer["stock"];
+            var price = answer["sellingPrice"];
 
-          	if(stock == 0){
+            console.log("Description:", description);
+            console.log("Stock:", stock);
+            console.log("Price:", price);
 
-      			swal({
-			      title: "There's no stock available",
-			      type: "error",
-			      confirmButtonText: "¡Close!"
-			    });
+            if (description === undefined || stock === undefined || price === undefined) {
+                console.error("Missing product data:", { description, stock, price });
+                return;
+            }
 
-			    
-			    $("button[idProduct='"+idProduct+"']").addClass("btn-primary addProductSale");
+            // Avoid adding the product if its stock is zero
+            if (stock == 0) {
+                swal({
+                    title: "There's no stock available",
+                    type: "error",
+                    confirmButtonText: "¡Close!"
+                });
 
-			    return;
+                // Restore the button state to allow re-adding the product
+                $("button[idProduct='" + idProduct + "']").addClass("btn-primary addProductSale");
 
-          	}
+                return;
+            }
 
-          	$(".newProduct").append(
+            // Append the product details to the product list
+            $(".newProduct").append(
+                '<div class="row" style="padding:5px 15px">' +
+                    '<!-- Product description -->' +
+                    '<div class="col-xs-6" style="padding-right:0px">' +
+                        '<div class="input-group">' +
+                            '<span class="input-group-addon">' +
+                                '<button type="button" class="btn btn-danger btn-xs removeProduct" idProduct="' + idProduct + '"><i class="fa fa-times"></i></button>' +
+                            '</span>' +
+                            '<input type="text" class="form-control newProductDescription" idProduct="' + idProduct + '" name="addProductSale" value="' + description + '" readonly required>' +
+                        '</div>' +
+                    '</div>' +
+                    '<!-- Product quantity -->' +
+                    '<div class="col-xs-3">' +
+                        '<input type="number" class="form-control newProductQuantity" name="newProductQuantity" min="1" value="1" stock="' + stock + '" newStock="' + Number(stock - 1) + '" required>' +
+                    '</div>' +
+                    '<!-- product price -->' +
+                    '<div class="col-xs-3 enterPrice" style="padding-left:0px">' +
+                        '<div class="input-group">' +
+                            '<span class="input-group-addon"><i class="fa fa-money"></i></span>' +
+                            '<input type="text" class="form-control newProductPrice" realPrice="' + price + '" name="newProductPrice" value="' + price + '" readonly required>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            );
 
-          	'<div class="row" style="padding:5px 15px">'+
+            // ADDING TOTAL PRICES
+            addingTotalPrices();
 
-			  '<!-- Product description -->'+
-	          
-	          '<div class="col-xs-6" style="padding-right:0px">'+
-	          
-	            '<div class="input-group">'+
-	              
-	              '<span class="input-group-addon"><button type="button" class="btn btn-danger btn-xs removeProduct" idProduct="'+idProduct+'"><i class="fa fa-times"></i></button></span>'+
+            // FORMAT PRODUCT PRICE
+            $(".newProductPrice").number(true, 2);
 
-	              '<input type="text" class="form-control newProductDescription" idProduct="'+idProduct+'" name="addProductSale" value="'+description+'" readonly required>'+
-
-	            '</div>'+
-
-	          '</div>'+
-
-	          '<!-- Product quantity -->'+
-
-	          '<div class="col-xs-3">'+
-	            
-	             '<input type="number" class="form-control newProductQuantity" name="newProductQuantity" min="1" value="1" stock="'+stock+'" newStock="'+Number(stock-1)+'" required>'+
-
-	          '</div>' +
-
-	          '<!-- product price -->'+
-
-	          '<div class="col-xs-3 enterPrice" style="padding-left:0px">'+
-
-	            '<div class="input-group">'+
-
-	              '<span class="input-group-addon"><i class="fa fa-money"></i></span>'+
-	                 
-	              '<input type="text" class="form-control newProductPrice" realPrice="'+price+'" name="newProductPrice" value="'+price+'" readonly required>'+
-	 
-	            '</div>'+
-	             
-	          '</div>'+
-
-	        '</div>')
-
-	        // ADDING TOTAL PRICES
-
-	    	addingTotalPrices()
-
-	    	// ADD TAX
-		        
-	        addTax()
-
-	        // GROUP PRODUCTS IN JSON FORMAT
-
-	        listProducts()
-
-	        // FORMAT PRODUCT PRICE
-			// LOG ON TO codeastro.com FOR MORE PROJECTS
-
-	        $(".newProductPrice").number(true, 2);
-
-      	}
-
-     })
-
+            // You can add the rest of your logic here (addTax, listProducts, etc.)
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", status, error);
+        }
+    });
 });
 
 /* LOG ON TO codeastro.com FOR MORE PROJECTS */
@@ -426,7 +415,7 @@ $(".saleForm").on("change", "input.newProductQuantity", function(){
 
 	// ADD TAX
         
-    addTax()
+    // addTax()
 
     // GROUP PRODUCTS IN JSON FORMAT
 
@@ -457,7 +446,7 @@ function addingTotalPrices(){
 
 	var addingTotalPrice = arrayAdditionPrice.reduce(additionArrayPrices);
 
-	//addingTotalPrice = round(addingTotalPrice);
+	// addingTotalPrice = round(addingTotalPrice);
 	
 	$("#newSaleTotal").val(addingTotalPrice);
 	$("#saleTotal").val(addingTotalPrice);
