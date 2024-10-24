@@ -14,6 +14,7 @@ class ProductsModel {
             $stmt->bindParam(":".$item, $value, PDO::PARAM_STR);
             $stmt->execute();
             return $stmt->fetch();
+                        error_log("Fetching products from table '$table' where $item = '$value'"); // Log the query information
         } else {
             $stmt = Connection::connect()->prepare("SELECT * FROM $table ORDER BY $order DESC");
             $stmt->execute();
@@ -22,8 +23,39 @@ class ProductsModel {
         $stmt->close();
         $stmt = null;
     }
+	static public function mdlGetIngredientsByProductId($table, $productId) {
+    $stmt = Connection::connect()->prepare("SELECT ingredient_id, quantity FROM $table WHERE product_id = :product_id");
+    $stmt->bindParam(":product_id", $productId, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+     	static public function mdlShowProductsWithIngredients($table, $item, $value){
 
-     
+		if($item != null){
+
+			$stmt = Connection::connect()->prepare("SELECT * FROM $table WHERE $item = :$item ORDER BY id DESC");
+
+			$stmt -> bindParam(":".$item, $value, PDO::PARAM_STR);
+
+			$stmt -> execute();
+
+			return $stmt -> fetch();
+
+		}else{
+
+			$stmt = Connection::connect()->prepare("SELECT * FROM $table");
+
+			$stmt -> execute();
+
+			return $stmt -> fetchAll();
+
+		}
+
+		$stmt -> close();
+
+		$stmt = null;
+
+	}
     /*=============================================
     ADDING PRODUCT
     =============================================*/

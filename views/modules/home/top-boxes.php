@@ -19,8 +19,8 @@ $totalProducts = count($products);
 
 
 
-<div class="col-lg-3 col-xs-6">
-	<!-- Log on to codeastro.com for more projects! -->
+<div class="col-lg-4 col-xs-6">
+	 
   <div class="small-box bg-primary">
     
     <div class="inner">
@@ -46,8 +46,8 @@ $totalProducts = count($products);
   </div>
 
 </div>
-<!-- Log on to codeastro.com for more projects! -->
-<div class="col-lg-3 col-xs-6">
+ 
+<div class="col-lg-4 col-xs-6">
 
   <div class="small-box bg-primary">
     
@@ -74,36 +74,10 @@ $totalProducts = count($products);
   </div>
 
 </div>
-<!-- Log on to codeastro.com for more projects! -->
-<div class="col-lg-3 col-xs-6">
+ 
 
-  <div class="small-box bg-primary">
-    
-    <div class="inner">
-    
-      <h3><?php echo number_format($totalCustomers); ?></h3>
-
-      <p>Customers</p>
-  
-    </div>
-    
-    <div class="icon">
-    
-      <i class="ion ion-person-add"></i>
-    
-    </div>
-    
-    <a href="customers" class="small-box-footer">
-
-      More info <i class="fa fa-arrow-circle-right"></i>
-
-    </a>
-
-  </div>
-
-</div>
-<!-- Log on to codeastro.com for more projects! -->
-<div class="col-lg-3 col-xs-6">
+ 
+<div class="col-lg-4 col-xs-6">
 
   <div class="small-box bg-primary">
   
@@ -128,5 +102,5 @@ $totalProducts = count($products);
     </a>
 
   </div>
-	<!-- Log on to codeastro.com for more projects! -->
+	 
 </div>

@@ -3,13 +3,18 @@ LOAD DYNAMIC PRODUCTS TABLE
 =============================================*/
 
 var hiddenProfile = $('#hiddenProfile').val();
+var hiddencategoryid = $('#hiddencategoryID').val();
 
 $('.productsTable').DataTable({
-    "ajax": "ajax/datatable-products.ajax.php?hiddenProfile=" + hiddenProfile,
+    "ajax": "ajax/datatable-products.ajax.php?hiddenProfile=" + hiddenProfile + "&category_id=" + hiddencategoryid,
     "deferRender": true,
     "retrieve": true,
     "processing": true
 });
+
+
+
+
 
 /*=============================================
 ADDING SELLING PRICE
@@ -67,6 +72,53 @@ $(".percentage").on("ifChecked", function () {
     $("#editSellingPrice").prop("readonly", true);
 
 });
+/*=============================================
+SHOW INGREDIENTS IN MODAL
+=============================================*/
+$(".productsTable tbody").on("click", "button.btnViewProduct", function () {
+    var idProduct = $(this).attr("idProduct");
+
+    // Clear previous ingredients
+    $("#ingredientsList").empty();
+
+    // AJAX request to get product ingredients
+    $.ajax({
+        url: "ajax/products.ajax.php",
+        method: "POST",
+        data: { idProduct: idProduct },
+        dataType: "json",
+        success: function (response) {
+            console.log("AJAX Response:", response); // Debugging
+            // Check if ingredients were received
+            if (response && response.ingredients && response.ingredients.length > 0) {
+                // Loop through each ingredient and append to the list
+                response.ingredients.forEach(function (ingredient) {
+                    if (ingredient.measurement === 'mililiters') {
+    ingredient.measurement = 'ml';
+}
+                    $("#ingredientsList").append(
+                        `<li class="list-group-item">
+                            <h3>${ingredient.ingredient}</h3>
+                            <p>Measurement: <strong>${ingredient.ingredient_needed}</strong> ${ingredient.measurement}</p>
+                        </li>`
+                    );
+                });
+            } else {
+                $("#ingredientsList").append(
+                    `<li class="list-group-item">No ingredients found for this product.</li>`
+                );
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error:", textStatus, errorThrown); // Debugging
+            console.log("Response Text:", jqXHR.responseText); // Debugging
+            $("#ingredientsList").append(
+                `<li class="list-group-item">Error loading ingredients.</li>`
+            );
+        }
+    });
+});
+
 
 /*=============================================
 UPLOADING PRODUCT IMAGE
@@ -151,7 +203,7 @@ $(".productsTable tbody").on("click", "button.btnEditProduct", function () {
                 }
             });
 
-            $("#editCode").val(answer["code"]);
+       
             $("#editDescription").val(answer["description"]);
             $("#editStock").val(answer["stock"]);
             $("#editSellingPrice").val(answer["sellingPrice"]);

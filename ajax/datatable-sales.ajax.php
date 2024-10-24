@@ -59,9 +59,7 @@ public function showProductsTableSales() {
         $jsonData .= '[
             "' . ($i + 1) . '",
             "' . $image . '",
-            "' . $products[$i]["code"] . '",
             "' . $products[$i]["description"] . '",
-            "' . $stock . '",
             "' . $buttons . '"
         ],';
     }

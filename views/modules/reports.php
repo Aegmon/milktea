@@ -105,7 +105,6 @@ if($_SESSION["profile"] == "Special"){
            
             <?php
 
-            include "reports/sellers.php";
 
             ?>
 
@@ -115,7 +114,7 @@ if($_SESSION["profile"] == "Special"){
            
             <?php
 
-            include "reports/buyers.php";
+        
 
             ?>
 
@@ -128,5 +127,5 @@ if($_SESSION["profile"] == "Special"){
     </div>
 
   </section>
-	<!-- Log on to codeastro.com for more projects! -->
+
  </div>

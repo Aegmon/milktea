@@ -179,6 +179,7 @@
 <!-- ./wrapper -->
 <script src="views/js/attribute.js"></script>
 <script src="views/js/ingredients.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="views/js/template.js"></script>
 <script src="views/js/users.js"></script>
 <script src="views/js/categories.js"></script>

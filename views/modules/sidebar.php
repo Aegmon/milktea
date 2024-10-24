@@ -14,16 +14,16 @@
 				';
 			}
 
-			if ($_SESSION["profile"] == "Administrator" || $_SESSION["profile"] == "Employee") {
-				echo '
-					<li>
-						<a href="customers">
-							<i class="fa fa-users"></i>
-							<span>Customers</span>
-						</a>
-					</li>
-				';
-			}
+			// if ($_SESSION["profile"] == "Administrator" || $_SESSION["profile"] == "Employee") {
+			// 	echo '
+			// 		<li>
+			// 			<a href="customers">
+			// 				<i class="fa fa-users"></i>
+			// 				<span>Customers</span>
+			// 			</a>
+			// 		</li>
+			// 	';
+			// }
 
 			if ($_SESSION["profile"] == "Administrator" || $_SESSION["profile"] == "Employee") {
 				echo '

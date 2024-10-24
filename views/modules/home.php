@@ -35,7 +35,19 @@
       ?>
     
     </div>
+        <div class="row p-2">
+      <div class="col-lg-12">
+      <?php
+
+   
+
+          include "home/ingredientsData.php";
+
     
+
+      ?>
+       </div>
+    </div>
     <div class="row">
 
       <div class="col-lg-12">

@@ -21,13 +21,12 @@ $('.salesTable').DataTable({
 	"processing": true
 });
 
-/* LOG ON TO codeastro.com FOR MORE PROJECTS */
+ 
 /*=============================================
 ADDING PRODUCTS TO THE SALE FROM THE TABLE
 =============================================*/
 
-$(".salesTable tbody").on("click", "button.addProductSale", function(){
-
+$(".salesTable tbody").on("click", "button.addProductSale", function() {
     var idProduct = $(this).attr("idProduct");
 
     // Remove the "addProductSale" class to prevent adding the same product again
@@ -46,81 +45,79 @@ $(".salesTable tbody").on("click", "button.addProductSale", function(){
         processData: false,
         dataType: "json",
         success: function(answer) {
-
-            // Log the entire response to check what is returned
             console.log("AJAX Response:", answer);
 
-            if (!answer) {
-                console.error("No response from server.");
-                return;
-            }
+            // Check if the status is 'success' and if product data exists
+            if (answer.status === 'success' && answer.product) {
+                // Retrieve product details from the product object
+                var description = answer.product.description;
+                var price = answer.product.sellingPrice;
 
-            if (typeof answer !== "object") {
-                console.error("Unexpected response type:", answer);
-                return;
-            }
+                console.log("Description:", description);
+                console.log("Price:", price);
 
-            // Logging each field to see if they are properly retrieved
-            var description = answer["description"];
-            var stock = answer["stock"];
-            var price = answer["sellingPrice"];
+                if (description === undefined || price === undefined) {
+                    console.error("Missing product data:", { description, price });
+                    return;
+                }
 
-            console.log("Description:", description);
-            console.log("Stock:", stock);
-            console.log("Price:", price);
+                // Append the product details including quantity input
+                $(".newProduct").append(
+                    '<div class="row" style="padding:5px 15px">' +
+                        '<!-- Product description -->' +
+                        '<div class="col-xs-6" style="padding-right:0px">' +
+                            '<div class="input-group">' +
+                                '<span class="input-group-addon">' +
+                                    '<button type="button" class="btn btn-danger btn-xs removeProduct" idProduct="' + answer.product.id + '">' +
+                                        '<i class="fa fa-times"></i>' +
+                                    '</button>' +
+                                '</span>' +
+                                '<input type="text" class="form-control newProductDescription" idProduct="' + answer.product.id + '" name="addProductSale" value="' + description + '" readonly required>' +
+                            '</div>' +
+                        '</div>' +
+                        '<!-- Product quantity -->' +
+                        '<div class="col-xs-3 enterQuantity" style="padding-left:0px">' +
+                            '<div class="input-group">' +
+                                '<span class="input-group-addon"><i class="fa fa-shopping-cart"></i></span>' +
+                                '<input type="number" class="form-control newProductQuantity" name="newProductQuantity" min="1" value="1" required>' +
+                            '</div>' +
+                        '</div>' +
+                        '<!-- Product price -->' +
+                        '<div class="col-xs-3 enterPrice" style="padding-left:0px">' +
+                            '<div class="input-group">' +
+                                '<span class="input-group-addon"><i class="fa fa-money"></i></span>' +
+                                '<input type="text" class="form-control newProductPrice" realPrice="' + price + '" name="newProductPrice" value="' + price + '" readonly required>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+                );
 
-            if (description === undefined || stock === undefined || price === undefined) {
-                console.error("Missing product data:", { description, stock, price });
-                return;
-            }
+                // Update total prices immediately after adding a new product
+                addingTotalPrices();
+                listProducts();
 
-            // Avoid adding the product if its stock is zero
-            if (stock == 0) {
-                swal({
-                    title: "There's no stock available",
-                    type: "error",
-                    confirmButtonText: "¡Close!"
+                // FORMAT PRODUCT PRICE
+                $(".newProductPrice").number(true, 2);
+
+                // Add event listener for quantity change to update price
+                $(".newProduct").on("change", "input.newProductQuantity", function() {
+                    var priceElement = $(this).closest('.row').find('.newProductPrice');
+                    var realPrice = Number(priceElement.attr("realPrice"));
+                    var quantity = Number($(this).val());
+
+                    // Calculate and update final price
+                    if (!isNaN(realPrice) && quantity > 0) {
+                        var finalPrice = quantity * realPrice;
+                        priceElement.val(finalPrice.toFixed(2));
+                    }
+
+                    // Update total prices after quantity change
+                    addingTotalPrices();
                 });
 
-                // Restore the button state to allow re-adding the product
-                $("button[idProduct='" + idProduct + "']").addClass("btn-primary addProductSale");
-
-                return;
+            } else {
+                console.error("Product data not found or error in response.");
             }
-
-            // Append the product details to the product list
-            $(".newProduct").append(
-                '<div class="row" style="padding:5px 15px">' +
-                    '<!-- Product description -->' +
-                    '<div class="col-xs-6" style="padding-right:0px">' +
-                        '<div class="input-group">' +
-                            '<span class="input-group-addon">' +
-                                '<button type="button" class="btn btn-danger btn-xs removeProduct" idProduct="' + idProduct + '"><i class="fa fa-times"></i></button>' +
-                            '</span>' +
-                            '<input type="text" class="form-control newProductDescription" idProduct="' + idProduct + '" name="addProductSale" value="' + description + '" readonly required>' +
-                        '</div>' +
-                    '</div>' +
-                    '<!-- Product quantity -->' +
-                    '<div class="col-xs-3">' +
-                        '<input type="number" class="form-control newProductQuantity" name="newProductQuantity" min="1" value="1" stock="' + stock + '" newStock="' + Number(stock - 1) + '" required>' +
-                    '</div>' +
-                    '<!-- product price -->' +
-                    '<div class="col-xs-3 enterPrice" style="padding-left:0px">' +
-                        '<div class="input-group">' +
-                            '<span class="input-group-addon"><i class="fa fa-money"></i></span>' +
-                            '<input type="text" class="form-control newProductPrice" realPrice="' + price + '" name="newProductPrice" value="' + price + '" readonly required>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>'
-            );
-
-            // ADDING TOTAL PRICES
-            addingTotalPrices();
-
-            // FORMAT PRODUCT PRICE
-            $(".newProductPrice").number(true, 2);
-
-            // You can add the rest of your logic here (addTax, listProducts, etc.)
         },
         error: function(xhr, status, error) {
             console.error("AJAX Error:", status, error);
@@ -128,7 +125,7 @@ $(".salesTable tbody").on("click", "button.addProductSale", function(){
     });
 });
 
-/* LOG ON TO codeastro.com FOR MORE PROJECTS */
+ 
 /*=============================================
 WHEN TABLE LOADS EVERYTIME THAT NAVIGATE IN IT
 =============================================*/
@@ -192,7 +189,7 @@ $(".saleForm").on("click", "button.removeProduct", function(){
 
 	if($(".newProducto").children().length == 0){
 
-		$("#newTaxSale").val(0);
+	
 		$("#newTotalSale").val(0);
 		$("#totalSale").val(0);
 		$("#newTotalSale").attr("totalSale",0);
@@ -203,11 +200,6 @@ $(".saleForm").on("click", "button.removeProduct", function(){
 
     	addingTotalPrices()
 
-    	// ADD TAX
-	        
-        // addTax()
-
-        // GROUP PRODUCTS IN JSON FORMAT
 
         listProducts()
 
@@ -303,15 +295,9 @@ $(".btnAddProduct").click(function(){
 
 	         }
 
-	         // ADDING TOTAL PRICES
 
 			addingTotalPrices()
 
-			// ADD TAX
-		        
-		    // addTax()
-
-	        // SET FORMAT TO THE PRODUCT PRICE
 
 	        $(".newProductPrice").number(true, 2);
 
@@ -322,7 +308,7 @@ $(".btnAddProduct").click(function(){
 
 })
 
-/* LOG ON TO codeastro.com FOR MORE PROJECTS */
+ 
 /*=============================================
 SELECT PRODUCT
 =============================================*/
@@ -371,123 +357,79 @@ $(".saleForm").on("change", "select.newProductDescription", function(){
 MODIFY QUANTITY
 =============================================*/
 
-$(".saleForm").on("change", "input.newProductQuantity", function(){
+$(".saleForm").on("change", "input.newProductQuantity", function() {
+    // Find the price element
+    var priceElement = $(this).parent().parent().find(".enterPrice .newProductPrice");
 
-	var price = $(this).parent().parent().children(".enterPrice").children().children(".newProductPrice");
+    // Get the real price from the attribute
+    var realPrice = Number(priceElement.attr("realPrice"));
+    
+    // Debugging log to check realPrice value
+    console.log("Real price:", realPrice);
 
-	var finalPrice = $(this).val() * price.attr("realPrice");
-	
-	price.val(finalPrice);
+    // Get the current quantity from the input
+    var quantity = Number($(this).val());
+    
+    // Debugging log for the quantity
+    console.log("Current quantity:", quantity);
 
-	var newStock = Number($(this).attr("stock")) - $(this).val();
+  
+    // Calculate final price based on quantity and real price
+    var finalPrice = quantity * realPrice;
+    
+    // Check if finalPrice is valid
+    if (isNaN(finalPrice)) {
+        console.error("Final price calculation resulted in NaN");
+        return; // Exit if the final price is invalid
+    }
 
-	$(this).attr("newStock", newStock);
+    // Set the calculated final price to the price input
+    priceElement.val(finalPrice.toFixed(2)); // Format to 2 decimal places
 
-	console.log("$(this).attr(\"stock\")", $(this).attr("stock"));
-	if(Number($(this).val()) > Number($(this).attr("stock"))){
+    // Log the final price for debugging
+    console.log("Final price:", finalPrice);
 
-		/*=============================================
-		IF QUANTITY IS MORE THAN THE STOCK VALUE SET INITIAL VALUES
-		=============================================*/
-
-		$(this).val(1);
-
-		var finalPrice = $(this).val() * price.attr("realPrice");
-
-		price.val(finalPrice);
-
-		addingTotalPrices();
-
-		swal({
-	      title: "The quantity is more than your stock",
-	      text: "¡There's only"+$(this).attr("stock")+" units!",
-	      type: "error",
-	      confirmButtonText: "Close!"
-	    });
-
-	    return;
-
-	}
-
-	// ADDING TOTAL PRICES
-
-	addingTotalPrices()
-
-	// ADD TAX
-        
-    // addTax()
-
-    // GROUP PRODUCTS IN JSON FORMAT
-
-    listProducts()
-
-})
-/* LOG ON TO codeastro.com FOR MORE PROJECTS */
-/*============================================
-PRICES ADDITION
-=============================================*/
-
-function addingTotalPrices(){
-
-	var priceItem = $(".newProductPrice");
-	var arrayAdditionPrice = [];  
-
-	for(var i = 0; i < priceItem.length; i++){
-
-		 arrayAdditionPrice.push(Number($(priceItem[i]).val()));
-		 
-	}
-
-	function additionArrayPrices(totalSale, numberArray){
-
-		return totalSale + numberArray;
-
-	}
-
-	var addingTotalPrice = arrayAdditionPrice.reduce(additionArrayPrices);
-
-	// addingTotalPrice = round(addingTotalPrice);
-	
-	$("#newSaleTotal").val(addingTotalPrice);
-	$("#saleTotal").val(addingTotalPrice);
-	$("#newSaleTotal").attr("totalSale",addingTotalPrice);
-
-
-}
-/* LOG ON TO codeastro.com FOR MORE PROJECTS */
-/*=============================================
-ADD TAX
-=============================================*/
-
-function addTax(){
-
-	var tax = $("#newTaxSale").val();
-
-	var totalPrice = $("#newSaleTotal").attr("totalSale");
-
-	var taxPrice = Math.round(Number(totalPrice * tax/100));
-
-	var totalwithTax = Number(taxPrice) + Number(totalPrice);
-	
-	$("#newSaleTotal").val(totalwithTax);
-
-	$("#saleTotal").val(totalwithTax);
-
-	$("#newTaxPrice").val(taxPrice);
-
-	$("#newNetPrice").val(totalPrice);
-
-}
-
-/*=============================================
-WHEN TAX CHANGES
-=============================================*/
-
-$("#newTaxSale").change(function(){
-
-	// addTax();
-
+    // Update total prices
+    addingTotalPrices();
+    listProducts(); // Call to listProducts() to update product list
 });
+
+/*============================================ 
+PRICES ADDITION 
+=============================================*/
+function addingTotalPrices() {
+    var priceItem = $(".newProductPrice");
+    var arrayAdditionPrice = [];  
+
+    for (var i = 0; i < priceItem.length; i++) {
+        // Push each price value into the array
+        var itemPrice = Number($(priceItem[i]).val());
+        if (!isNaN(itemPrice)) { // Check if itemPrice is a valid number
+            arrayAdditionPrice.push(itemPrice);
+        }
+    }
+
+    // Log the prices being added for debugging
+    console.log("Prices array:", arrayAdditionPrice);
+
+    // Function to add up all the prices in the array
+    function additionArrayPrices(totalSale, numberArray) {
+        return totalSale + numberArray;
+    }
+
+    // Calculate the total price using reduce
+    var addingTotalPrice = arrayAdditionPrice.reduce(additionArrayPrices, 0); // Initialize totalSale to 0
+
+    // Log the calculated total price for debugging
+    console.log("Total price:", addingTotalPrice);
+
+    // Update the total sale inputs
+    $("#newSaleTotal").val(addingTotalPrice.toFixed(2)); // Format to 2 decimal places
+    $("#saleTotal").val(addingTotalPrice.toFixed(2)); // Format to 2 decimal places
+    $("#newSaleTotal").attr("totalSale", addingTotalPrice);
+}
+
+
 
 /*=============================================
 FINAL PRICE FORMAT
@@ -595,7 +537,6 @@ CHANGE TRANSACTION CODE
 =============================================*/
 $(".saleForm").on("change", "input#newTransactionCode", function(){
 
-	// List method in the entry
      listMethods()
 
 

@@ -52,42 +52,40 @@ if($_SESSION["profile"] == "Employee"){
             </thead>
 
             <tbody>
-              <?php
+           <?php
 
-                $item = null; 
-                $value = null;
+$item = null; 
+$value = null;
 
-                $categories = ControllerCategories::ctrShowCategories($item, $value);
+$categories = ControllerCategories::ctrShowCategories($item, $value);
 
-                // var_dump($categories);
+// var_dump($categories);
 
-                foreach ($categories as $key => $value) {
+foreach ($categories as $key => $value) {
+    echo '<tr>
+            <td>' . ($key + 1) . '</td>
+            <td class="text-uppercase">' . $value['Category'] . '</td>
+            <td>
+                <div class="btn-group">
+                    <a class="btn btn-primary" href="index.php?route=products&category_id=' . urlencode($value["id"]) . '">View Products</a>
+                    <button class="btn btn-primary btnEditCategory" idCategory="' . $value["id"] . '" data-toggle="modal" data-target="#editCategories">
+                        <i class="fa fa-pencil"></i>
+                    </button>
+                    <button class="btn btn-danger btnDeleteCategory" idCategory="' . $value["id"] . '">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+          </tr>';
+}
+?>
 
-                  echo '<tr>
-                          <td>'.($key+1).'</td>
-                          <td class="text-uppercase">'.$value['Category'].'</td>
-                          <td>
-
-                            <div class="btn-group">
-                                
-                              <button class="btn btn-primary btnEditCategory" idCategory="'.$value["id"].'" data-toggle="modal" data-target="#editCategories"><i class="fa fa-pencil"></i></button>
-
-                              <button class="btn btn-danger btnDeleteCategory" idCategory="'.$value["id"].'"><i class="fa fa-trash"></i></button>
-
-                            </div>  
-
-                          </td>
-
-                        </tr>';
-                }
-
-              ?>
               
             </tbody>
 
           </table>
 
-		<!-- Log on to codeastro.com for more projects! -->
+		 
 
         </div>
       
@@ -102,7 +100,7 @@ if($_SESSION["profile"] == "Employee"){
 <!--=====================================
 =            module add Categories            =
 ======================================-->
-<!-- Log on to codeastro.com for more projects! -->
+ 
 <!-- Modal -->
 <div id="addCategories" class="modal fade" role="dialog">
   <div class="modal-dialog">
@@ -143,7 +141,7 @@ if($_SESSION["profile"] == "Employee"){
   $createCategory -> ctrCreateCategory();
 ?>
 
-<!-- Log on to codeastro.com for more projects! -->
+ 
 <!--=====================================
 =            module edit Categories            =
 ======================================-->
@@ -170,7 +168,7 @@ if($_SESSION["profile"] == "Employee"){
                 <input type="hidden" name="idCategory" id="idCategory" required>
               </div>
             </div>
-			<!-- Log on to codeastro.com for more projects! -->
+			 
           </div>
         </div>
         <div class="modal-footer">
@@ -188,7 +186,7 @@ if($_SESSION["profile"] == "Employee"){
 
   </div>
 </div>
-<!-- Log on to codeastro.com for more projects! -->
+ 
 <?php
   
   $deleteCategory = new ControllerCategories();

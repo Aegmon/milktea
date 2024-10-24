@@ -77,25 +77,16 @@ static public function mdlEditIngredient($table, $data) {
     $stmt->close();
     $stmt = null;
 }
-static public function mdlSubtractData($table, $data) {
-    // Prepare the statement to subtract the size from the quantity for the specified ingredient id
-    $stmt = Connection::connect()->prepare("UPDATE $table SET quantity = quantity - :size WHERE id = :id");
 
-    // Bind parameters
-    $stmt->bindParam(":size", $data["size"], PDO::PARAM_INT);  // Subtract the 'size' from the 'quantity'
-    $stmt->bindParam(":id", $data["ingredientId"], PDO::PARAM_INT);
-
+static public function mdlUpdateIngredientQuantity($table, $data) {
+    $stmt = Connection::connect()->prepare("UPDATE $table SET quantity = quantity - :quantity WHERE id = :id");
+    $stmt->bindParam(":id", $data["id"], PDO::PARAM_INT);
+    $stmt->bindParam(":quantity", $data["quantity"], PDO::PARAM_INT);
     if ($stmt->execute()) {
         return "ok";
     } else {
-        // Log the error message
-        error_log("Failed to update ingredient: " . print_r($stmt->errorInfo(), true));
         return "error";
     }
-
-    // Close the statement
-    $stmt->close();
-    $stmt = null;
 }
 
 

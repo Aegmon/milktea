@@ -105,10 +105,8 @@ if ($_SESSION["profile"] == "Seller") {
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-balance-scale"></i></span>
                                 <select class="form-control input-lg" name="newSize" required>
-                                    <option value="" disabled selected>Select Size</option>
+                                    <option value="" disabled selected>Select Measurement</option>
                                     <option value="grams">Grams</option>
-                                    <option value="kilograms">Kilograms</option>
-                                    <option value="liters">Liters</option>
                                     <option value="mililiters">Milliliters</option>
                                 </select>
                             </div>

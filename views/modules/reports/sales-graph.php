@@ -50,7 +50,7 @@ SALES GRAPH
 ======================================-->
 
 <!-- Log on to codeastro.com for more projects! -->
-<div class="box box-solid bg-blue-gradient">
+<div class="box box-solid bg-blue">
 	
 	<div class="box-header">
 		

@@ -65,6 +65,47 @@ class AjaxProducts {
     }
 }
 
+
+public function ajaxFetchProductIngredients() {
+    error_log("ajaxFetchProductIngredients called with idProduct: " . $this->idProduct); // Debug logging
+
+    if (isset($this->idProduct)) {
+        $item = "p.id";
+        $value = $this->idProduct;
+        $order = null; // You may or may not want to order them
+
+        // Fetch product ingredients
+        $ingredients = controllerProducts::ctrShowProductsIngredients($item, $value, $order);
+
+        // Fetch product details
+        $productDetails = controllerProducts::ctrShowProductDetails($value);
+
+        // Create a response array
+        $response = [
+            "status" => "success",
+            "product" => $productDetails,
+            "ingredients" => $ingredients
+        ];
+
+        // Ensure there's no previous output
+        if (ob_get_length()) ob_end_clean(); // Clean output buffer if any
+        
+        // Set the header to application/json
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    } else {
+        // Return an error if product ID is not provided
+        header('Content-Type: application/json');
+        echo json_encode([
+            "status" => "error",
+            "message" => "Product ID not provided."
+        ]);
+    }
+}
+
+
+
+
     /*=============================================
     CREATE PRODUCT WITH INGREDIENTS
     =============================================*/ 
@@ -98,6 +139,7 @@ class AjaxProducts {
         }
     }
 }
+
 
 /*=============================================
 GENERATE CODE FROM ID CATEGORY
@@ -147,4 +189,11 @@ if (isset($_POST["productData"])) {
     $createProduct = new AjaxProducts();
     $createProduct->productData = $_POST["productData"];
     $createProduct->ajaxCreateProductWithIngredients();
+}
+
+
+if (isset($_POST["idProduct"])) {
+    $editProduct = new AjaxProducts();
+    $editProduct->idProduct = $_POST["idProduct"];
+    $editProduct->ajaxFetchProductIngredients(); 
 }

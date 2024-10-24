@@ -7,7 +7,7 @@ use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 
 
 class ControllerSales{
-	/* --LOG ON TO codeastro.com FOR MORE PROJECTS-- */
+	 
 	/*=============================================
 	SHOW SALES
 	=============================================*/
@@ -26,109 +26,137 @@ class ControllerSales{
 	CREATE SALE
 	=============================================*/
 
-static public function ctrCreateSale(){
-
-    if(isset($_POST["newSale"])){
-
+static public function ctrCreateSale() {
+    if (isset($_POST["newSale"])) {
         /*=============================================
         UPDATE CUSTOMER'S PURCHASES AND REDUCE THE STOCK AND INCREASE SALES OF THE PRODUCT
         =============================================*/
 
         $productsList = json_decode($_POST["productsList"], true);
-
         $totalPurchasedProducts = array();
 
-        foreach ($productsList as $key => $value) {
+        if (is_array($productsList) && !empty($productsList)) {
+            foreach ($productsList as $key => $value) {
+                array_push($totalPurchasedProducts, $value["quantity"]);
+                
+                $tableProducts = "products";
+                $item = "id";
+                $valueProductId = $value["id"];
+				
+                $order = "id";
 
-            array_push($totalPurchasedProducts, $value["quantity"]);
-            
-            $tableProducts = "products";
+                $getProduct = ProductsModel::mdlShowProducts($tableProducts, $item, $valueProductId, $order);
 
-            $item = "id";
-            $valueProductId = $value["id"];
-            $order = "id";
+                // Update sales
+                $item1a = "sales";
+                $value1a = $value["quantity"] + $getProduct["sales"];
+                $newSales = ProductsModel::mdlUpdateProduct($tableProducts, $item1a, $value1a, $valueProductId);
 
-            $getProduct = ProductsModel::mdlShowProducts($tableProducts, $item, $valueProductId, $order);
+                // Update stock
+                $item1b = "stock";
+                $value1b = $getProduct["stock"] - $value["quantity"]; // Adjust stock based on quantity sold
+                // $newStock = ProductsModel::mdlUpdateProduct($tableProducts, $item1b, $value1b, $valueProductId);
 
-            $item1a = "sales";
-            $value1a = $value["quantity"] + $getProduct["sales"];
-
-            $newSales = ProductsModel::mdlUpdateProduct($tableProducts, $item1a, $value1a, $valueProductId);
-
-            $item1b = "stock";
-            $value1b = $value["stock"];
-
-            $newStock = ProductsModel::mdlUpdateProduct($tableProducts, $item1b, $value1b, $valueProductId);
-
+                // Update ingredient quantities
+                self::ctrUpdateIngredients($valueProductId, $value["quantity"]);
+            }
+        } else {
+            echo "Error: Product list is empty or invalid.";
+            return; // Exit if the product list is invalid
         }
-
-        $tableCustomers = "customers";
-
-        $item = "id";
-        $valueCustomer = $_POST["selectCustomer"];
-
-        $getCustomer = ModelCustomers::mdlShowCustomers($tableCustomers, $item, $valueCustomer);
-
-        $item1a = "purchases";
-        $value1a = array_sum($totalPurchasedProducts) + $getCustomer["purchases"];
-
-        $customerPurchases = ModelCustomers::mdlUpdateCustomer($tableCustomers, $item1a, $value1a, $valueCustomer);
-
-        $item1b = "lastPurchase";
-
-        date_default_timezone_set('America/Bogota');
-
-        $date = date('Y-m-d');
-        $hour = date('H:i:s');
-        $value1b = $date.' '.$hour;
-
-        $dateCustomer = ModelCustomers::mdlUpdateCustomer($tableCustomers, $item1b, $value1b, $valueCustomer);
 
         /*=============================================
         SAVE THE SALE
-        =============================================*/   
+        =============================================*/
 
         $table = "sales";
 
         // Check if newNetPrice exists, if not assign a default value (e.g., 0)
         $netPrice = isset($_POST["newNetPrice"]) ? $_POST["newNetPrice"] : 0;
 
-        $data = array("idSeller"=>$_POST["idSeller"],
-                       "idCustomer"=>$_POST["selectCustomer"],
-                       "code"=>$_POST["newSale"],
-                       "products"=>$_POST["productsList"],
-                       "netPrice"=>$netPrice,
-                       "totalPrice"=>$_POST["saleTotal"],
-                       "paymentMethod"=>$_POST["listPaymentMethod"]);
+        $data = array(
+            "idSeller" => $_POST["idSeller"],
+            "idCustomer" => "2",
+            "code" => $_POST["newSale"],
+            "products" => $_POST["productsList"],
+            "netPrice" => $netPrice,
+            "totalPrice" => $_POST["saleTotal"],
+            "paymentMethod" => $_POST["listPaymentMethod"]
+        );
 
         $answer = ModelSales::mdlAddSale($table, $data);
 
-        if($answer == "ok"){
-
-            echo'<script>
-
-            localStorage.removeItem("range");
-
-            swal({
-                  type: "success",
-                  title: "The sale has been successfully added",
-                  showConfirmButton: true,
-                  confirmButtonText: "Close"
-                  }).then((result) => {
-                            if (result.value) {
-
-                            window.location = "sales";
-
-                            }
-                        })
-
+        if ($answer == "ok") {
+            echo '<script>
+                localStorage.removeItem("range");
+                swal({
+                    type: "success",
+                    title: "The sale has been successfully added",
+                    showConfirmButton: true,
+                    confirmButtonText: "Close"
+                }).then((result) => {
+                    if (result.value) {
+                        window.location = "sales";
+                    }
+                });
             </script>';
-
         }
-
     }
-
 }
+/*=============================================
+UPDATE INGREDIENT QUANTITIES BASED ON PRODUCT SOLD
+=============================================*/
+static public function ctrUpdateIngredients($productId, $quantityPurchased) {
+    // Define the tables
+    $tableProductsIngredients = "productsingredients";
+    $tableIngredients = "ingredients";
+
+    // Log the initial parameters received
+    error_log("ctrUpdateIngredients called with productId: $productId and quantityPurchased: $quantityPurchased");
+
+    // Get the ingredient IDs associated with the product
+    $stmt = Connection::connect()->prepare("SELECT * FROM $tableProductsIngredients WHERE product_id = :productId");
+    $stmt->bindParam(":productId", $productId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $ingredientsList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Log the SQL query and results
+    error_log("SQL Query executed: SELECT * FROM $tableProductsIngredients WHERE product_id = $productId");
+    error_log("Results: " . print_r($ingredientsList, true)); // Log the retrieved ingredients
+
+    if (!empty($ingredientsList) && is_array($ingredientsList)) {
+        error_log("Ingredients found for product ID $productId: " . print_r($ingredientsList, true));
+
+        foreach ($ingredientsList as $ingredient) {
+            $ingredientId = $ingredient["ingredient_id"];
+            $quantityPerProduct = $ingredient["size"]; 
+            $quantityToUpdate = $quantityPerProduct * $quantityPurchased; 
+
+            error_log("Updating ingredient ID $ingredientId: quantity per product $quantityPerProduct, total quantity to update: $quantityToUpdate");
+
+            // Prepare the data to update the ingredient quantity
+            $updateData = array(
+                "id" => $ingredientId,
+                "quantity" => $quantityToUpdate
+            );
+
+            // Update the ingredient quantity in the database
+            $updateResult = IngredientsModel::mdlUpdateIngredientQuantity($tableIngredients, $updateData);
+
+            if ($updateResult == "ok") {
+                error_log("Successfully updated ingredient ID: $ingredientId with quantity: $quantityToUpdate");
+            } else {
+                error_log("Failed to update ingredient ID: $ingredientId, result: $updateResult");
+            }
+        }
+    } else {
+        error_log("Error: No ingredients found for the product ID: $productId");
+        echo "Error: No ingredients found for the product ID.";
+    }
+}
+
+
 
 
 
@@ -207,7 +235,7 @@ static public function ctrCreateSale(){
 				$value1a = $getCustomer["purchases"] - array_sum($totalPurchasedProducts);
 
 				$customerPurchases = ModelCustomers::mdlUpdateCustomer($tableCustomers, $item1a, $value1a, $valueCustomer);
-				/* --LOG ON TO codeastro.com FOR MORE PROJECTS-- */
+				 
 				/*=============================================
 				UPDATE THE CUSTOMER'S PURCHASES AND REDUCE THE STOCK AND INCREMENT PRODUCT SALES
 				=============================================*/
@@ -263,7 +291,7 @@ static public function ctrCreateSale(){
 				$dateCustomer_2 = ModelCustomers::mdlUpdateCustomer($tableCustomers_2, $item1b_2, $value1b_2, $value_2);
 
 			}
-			/* --LOG ON TO codeastro.com FOR MORE PROJECTS-- */
+			 
 			/*=============================================
 			SAVE PURCHASE CHANGES
 			=============================================*/	
@@ -306,7 +334,7 @@ static public function ctrCreateSale(){
 		}
 
 	}
-	/* --LOG ON TO codeastro.com FOR MORE PROJECTS-- */
+	
 	/*=============================================
 	Delete Sale
 	=============================================*/
@@ -375,7 +403,6 @@ static public function ctrCreateSale(){
 				$customerPurchases = ModelCustomers::mdlUpdateCustomer($tableCustomers, $item, $value, $valueIdCustomer);
 
 			}
-			/* --LOG ON TO codeastro.com FOR MORE PROJECTS-- */
 			/*=============================================
 			FORMAT PRODUCTS AND CUSTOMERS TABLE
 			=============================================*/
@@ -411,9 +438,9 @@ static public function ctrCreateSale(){
 				$tableProductIngredients = "productsingredients";
 				$ingredientData = ProductsModel::mdlShowProductsWithIngredients($tableProductIngredients, $item, $valueProductId);
 
-				// Check if ingredients data is returned and get the ingredient ID
+		
 				if ($ingredientData) {
-					$ingredientsID = $ingredientData["id"]; // Extract the ID from the result
+					$ingredientsID = $ingredientData["id"]; 
 					error_log("Found ingredient ID: " . $ingredientsID);
 				} else {
 					error_log("No ingredients found for product ID: " . $valueProductId);
@@ -464,7 +491,7 @@ static public function ctrCreateSale(){
 		}
 
 	}
-	/* --LOG ON TO codeastro.com FOR MORE PROJECTS-- */
+	 
 	/*=============================================
 	DATES RANGE
 	=============================================*/	
@@ -576,7 +603,7 @@ static public function ctrCreateSale(){
 
 	}
 
-	/* --LOG ON TO codeastro.com FOR MORE PROJECTS-- */
+	 
 	/*=============================================
 	Adding TOTAL sales
 	=============================================*/

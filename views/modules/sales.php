@@ -80,8 +80,7 @@ if($xml){
              
              <th style="width:10px">#</th>
              <th>Bill</th>
-             <th>Customer</th>
-             <th>Employee</th>
+       
              <th>Payment Method</th>
              <!-- <th>Net Cost</th> -->
              <th>Total Cost</th>
@@ -122,16 +121,15 @@ if($xml){
 
                   $customerAnswer = ControllerCustomers::ctrShowCustomers($itemCustomer, $valueCustomer);
 
-                  echo '<td>'.$customerAnswer["name"].'</td>';
 
                   $itemUser = "id";
                   $valueUser = $value["idSeller"];
 
                   $userAnswer = ControllerUsers::ctrShowUsers($itemUser, $valueUser);
 
-             echo '     <td>'.$userAnswer["name"].'</td>
+             
 
-                   <td>'.$value["paymentMethod"].'</td>
+                  echo '   <td>'.$value["paymentMethod"].'</td>
 
 
                   <td>₱ '.number_format($value["totalPrice"],2).'</td>
@@ -154,7 +152,7 @@ if($xml){
 
                        if($_SESSION["profile"] == "Administrator"){
                         
-                         echo '<button class="btn btn-primary btnEditSale" idSale="'.$value["id"].'"><i class="fa fa-pencil"></i></button>
+                         echo '
 
                           <button class="btn btn-danger btnDeleteSale" idSale="'.$value["id"].'"><i class="fa fa-trash"></i></button>';
                        }

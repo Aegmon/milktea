@@ -5,8 +5,18 @@ $value = null;
 $order = "sales";
 
 $products = ControllerProducts::ctrShowProducts($item, $value, $order);
-
-$colours = array("red","green","yellow","aqua","purple","blue","cyan","magenta","orange","gold");
+$colours = array(
+    "#0000FF", // Blue
+    "#1E90FF", // Dodger Blue
+    "#00BFFF", // Deep Sky Blue
+    "#87CEFA", // Light Sky Blue
+    "#4682B4", // Steel Blue
+    "#ADD8E6", // Light Blue
+    "#B0E0E6", // Powder Blue
+    "#5F9EA0", // Cadet Blue
+    "#00CED1", // Dark Turquoise
+    "#008080"  // Teal
+);
 
 $salesTotal = ControllerProducts::ctrShowAddingOfTheSales();
 
@@ -84,63 +94,32 @@ products MÁS VENDIDOS
 </div>
 
 <script>
-	
-
-  // -------------
-  // - PIE CHART -
-  // -------------
-  // Get context with jQuery - using jQuery's .get() method.
-  var pieChartCanvas = $('#pieChart').get(0).getContext('2d');
-  var pieChart       = new Chart(pieChartCanvas);
-  var PieData        = [
-
-  <?php
-
-  for($i = 0; $i < 10; $i++){
-
-  	echo "{
-      value    : ".$products[$i]["sales"].",
-      color    : '".$colours[$i]."',
-      highlight: '".$colours[$i]."',
-      label    : '".$products[$i]["description"]."'
-    },";
-
-  }
-    
-   ?>
-  ];
-  var pieOptions     = {
-    // Boolean - Whether we should show a stroke on each segment
-    segmentShowStroke    : true,
-    // String - The colour of each segment stroke
-    segmentStrokeColor   : '#fff',
-    // Number - The width of each segment stroke
-    segmentStrokeWidth   : 1,
-    // Number - The percentage of the chart that we cut out of the middle
-    percentageInnerCutout: 50, // This is 0 for Pie charts
-    // Number - Amount of animation steps
-    animationSteps       : 100,
-    // String - Animation easing effect
-    animationEasing      : 'easeOutBounce',
-    // Boolean - Whether we animate the rotation of the Doughnut
-    animateRotate        : true,
-    // Boolean - Whether we animate scaling the Doughnut from the centre
-    animateScale         : false,
-    // Boolean - whether to make the chart responsive to window resizing
-    responsive           : true,
-    // Boolean - whether to maintain the starting aspect ratio or not when responsive, if set to false, will take up entire container
-    maintainAspectRatio  : false,
-    // String - A legend template
-    legendTemplate       : '<ul class=\'<%=name.toLowerCase()%>-legend\'><% for (var i=0; i<segments.length; i++){%><li><span style=\'background-color:<%=segments[i].fillColor%>\'></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>',
-    // String - A tooltip template
-    tooltipTemplate      : '<%=value %> <%=label%>'
-  };
-  // Create pie or douhnut chart
-  // You can switch between pie and douhnut using the method below.
-  pieChart.Doughnut(PieData, pieOptions);
-  // -----------------
-  // - END PIE CHART -
-  // -----------------
-
-
+    var pieChartCanvas = document.getElementById('pieChart').getContext('2d');
+    var pieChart       = new Chart(pieChartCanvas);
+    var PieData        = [
+        <?php
+        for($i = 0; $i < min(count($products), 10); $i++){
+            echo "{
+                value    : ".$products[$i]["sales"].",
+                color    : '".$colours[$i]."',
+                highlight: '".$colours[$i]."',
+                label    : '".$products[$i]["description"]."'
+            },";
+        }
+        ?>
+    ];
+    var pieOptions     = {
+        segmentShowStroke    : true,
+        segmentStrokeColor   : '#fff',
+        segmentStrokeWidth   : 1,
+        percentageInnerCutout: 50,
+        animationSteps       : 100,
+        animationEasing      : 'easeOutBounce',
+        animateRotate        : true,
+        animateScale         : false,
+        responsive           : true,
+        maintainAspectRatio  : false,
+        tooltipTemplate      : '<%=value %> <%=label%>'
+    };
+    pieChart.Doughnut(PieData, pieOptions);
 </script>

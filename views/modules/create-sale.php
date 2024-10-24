@@ -122,7 +122,7 @@ if($_SESSION["profile"] == "Special"){
                     <!-- Log on to codeastro.com for more projects! -->
                     <div class="form-group">
 
-                      <div class="input-group">
+                      <!-- <div class="input-group">
                         
                         <span class="input-group-addon"><i class="fa fa-users"></i></span>
                         <select class="form-control" name="selectCustomer" id="selectCustomer" required>
@@ -147,7 +147,7 @@ if($_SESSION["profile"] == "Special"){
 
                         <span class="input-group-addon"><button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#modalAddCustomer" data-dismiss="modal">Add Customer</button></span>
 
-                      </div>
+                      </div> -->
 
                     </div>
 					<!-- Log on to codeastro.com for more projects! -->
@@ -311,11 +311,8 @@ if($_SESSION["profile"] == "Special"){
                      
                      <th style="width:10px">#</th>
                      <th>Image</th>
-                     <th style="width:30px">Code</th>
                      <th>Description</th>
-                     <th>Stock</th>
                      <th>Actions</th>
-
                    </tr> 
 
                 </thead>
