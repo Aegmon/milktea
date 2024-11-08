@@ -102,7 +102,9 @@
   
 </head>
 
-<body class="hold-transition skin-black-light  sidebar-mini login-page">
+<body class="hold-transition skin-black-light  sidebar-mini login-page" style="    background-image: url('views/img/template/bg.jpg');   background-size: cover; /* Makes the image cover the entire div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat;">
 
 <!-- Site wrapper -->
 
@@ -134,6 +136,7 @@
             $_GET["route"] == 'users' ||
             $_GET["route"] == 'categories' ||
             $_GET["route"] == 'products' ||
+            $_GET["route"] == 'addproducts' ||
             $_GET["route"] == 'customers' ||
             $_GET["route"] == 'sales' ||
             $_GET["route"] == 'create-sale' ||

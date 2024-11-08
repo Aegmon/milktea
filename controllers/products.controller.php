@@ -9,8 +9,66 @@ class controllerProducts {
         $answer = ProductsModel::mdlShowProducts($table, $item, $value, $order);
         return $answer;
     }
+   static public function ctrShowProductsbydate($item, $value, $order, $timeRange = 'day') {
+        $table = "products"; // specify your table name
+        
+        // Define date range query based on $timeRange
+        $dateQuery = "";
+        switch ($timeRange) {
+            case 'day':
+                $dateQuery = "DATE(date) = CURDATE()"; // today
+                break;
+            case 'week':
+                $dateQuery = "YEARWEEK(date, 1) = YEARWEEK(CURDATE(), 1)"; // this week
+                break;
+            case 'month':
+                $dateQuery = "MONTH(date) = MONTH(CURDATE()) AND YEAR(saledate) = YEAR(CURDATE())"; // this month
+                break;
+            case 'year':
+                $dateQuery = "YEAR(date) = YEAR(CURDATE())"; // this year
+                break;
+        }
 
+        // Pass date range filter to the model function
+        return ProductsModel::mdlShowProductsbydate($table, $item, $value, $order, $dateQuery);
+    }
 
+      const TABLE_SALES = "sales";
+
+    static public function ctrShowAddingOfTheSalesbydate($timeRange = 'day') {
+        // Define date range query based on $timeRange
+        $dateQuery = "";
+        switch ($timeRange) {
+            case 'day':
+                $dateQuery = "DATE(saledate) = CURDATE()"; // today
+                break;
+            case 'week':
+                $dateQuery = "YEARWEEK(saledate, 1) = YEARWEEK(CURDATE(), 1)"; // this week
+                break;
+            case 'month':
+                $dateQuery = "MONTH(saledate) = MONTH(CURDATE()) AND YEAR(saledate) = YEAR(CURDATE())"; // this month
+                break;
+            case 'year':
+                $dateQuery = "YEAR(saledate) = YEAR(CURDATE())"; // this year
+                break;
+            default:
+                return false; // Invalid time range
+        }
+
+        // Pass date range filter to the model function
+        return self::mdlShowAddingOfTheSalesbydate(self::TABLE_SALES, $dateQuery);
+    }
+
+    static public function mdlShowAddingOfTheSalesbydate($table, $dateQuery) {
+        $stmt = Connection::connect()->prepare("SELECT SUM(sales) as total FROM $table WHERE $dateQuery");
+        $stmt->execute();
+        
+        // Fetch the result
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Return total sales or 0 if no sales found
+        return $result ? $result : ['total' => 0]; // Ensure total key exists
+    }
 static public function ctrShowProductDetails($productId) {
     $pdo = Connection::connect();
 
@@ -63,7 +121,8 @@ static public function ctrCreateIngredientProduct() {
         if (
             preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["newDescription"]) &&
             preg_match('/^[0-9]+$/', $_POST["newSellingPrice"]) &&
-            !empty($_POST["ingredients"]) &&
+            !empty($_POST["ingredients"]) &&      
+            !empty($_POST["newSize"]) &&
             !empty($_POST["sizes"])
         ) {
             // Set default image route and allowed file types
@@ -110,6 +169,7 @@ static public function ctrCreateIngredientProduct() {
             $data = array(
                 "idCategory" => $_POST["newCategory"],
                 "description" => $_POST["newDescription"],
+                "size" => $_POST["newSize"],
                 "image" => $route,
                 "sellingPrice" => $_POST["newSellingPrice"]
             );
@@ -117,13 +177,14 @@ static public function ctrCreateIngredientProduct() {
             try {
                 // Get the database connection and prepare the SQL statement
                 $db = Connection::connect();
-                $stmt = $db->prepare("INSERT INTO products (idCategory, description, image, sellingPrice) 
-                                      VALUES (:idCategory, :description, :image, :sellingPrice)");
+                $stmt = $db->prepare("INSERT INTO products (idCategory, description, image, sellingPrice ,size) 
+                                      VALUES (:idCategory, :description, :image, :sellingPrice ,:size)");
 
                 // Bind parameters
                 $stmt->bindParam(":idCategory", $data["idCategory"], PDO::PARAM_INT);
                 $stmt->bindParam(":description", $data["description"], PDO::PARAM_STR);
                 $stmt->bindParam(":image", $data["image"], PDO::PARAM_STR);
+                $stmt->bindParam(":size", $data["size"], PDO::PARAM_STR);
                 $stmt->bindParam(":sellingPrice", $data["sellingPrice"], PDO::PARAM_STR);
 
                 // Execute the statement

@@ -43,12 +43,13 @@ class ModelSales{
 	/* --LOG ON TO codeastro.com FOR MORE PROJECTS-- */
 static public function mdlAddSale($table, $data) {
     try {
-        $stmt = Connection::connect()->prepare("INSERT INTO $table(code, idCustomer, idSeller, products, totalPrice, paymentMethod) VALUES (:code, :idCustomer, :idSeller, :products, :totalPrice, :paymentMethod)");
+        $stmt = Connection::connect()->prepare("INSERT INTO $table(code, idCustomer, idSeller, products, addons, totalPrice, paymentMethod) VALUES (:code, :idCustomer, :idSeller, :products, :addons, :totalPrice, :paymentMethod)");
 
         $stmt->bindParam(":code", $data["code"], PDO::PARAM_INT);
         $stmt->bindParam(":idCustomer", $data["idCustomer"], PDO::PARAM_INT);
         $stmt->bindParam(":idSeller", $data["idSeller"], PDO::PARAM_INT);
         $stmt->bindParam(":products", $data["products"], PDO::PARAM_STR);
+		        $stmt->bindParam(":addons", $data["addons"], PDO::PARAM_STR);
         $stmt->bindParam(":totalPrice", $data["totalPrice"], PDO::PARAM_STR);
         $stmt->bindParam(":paymentMethod", $data["paymentMethod"], PDO::PARAM_STR);
 

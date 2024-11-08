@@ -17,7 +17,7 @@ if($_SESSION["profile"] == "Special"){
 
   <section class="content-header">
     
-    <h1><!-- Log on to codeastro.com for more projects! -->
+    <h1>
       
       Sales report
     
@@ -41,7 +41,7 @@ if($_SESSION["profile"] == "Special"){
 
         <div class="input-group">
 
-          <button type="button" class="btn btn-default" id="daterange-btn2">
+          <!-- <button type="button" class="btn btn-default" id="daterange-btn2">
            
             <span>
               <i class="fa fa-calendar"></i> Date range
@@ -49,10 +49,10 @@ if($_SESSION["profile"] == "Special"){
 
             <i class="fa fa-caret-down"></i>
 
-          </button>
+          </button> -->
 
         </div>
-		<!-- Log on to codeastro.com for more projects! -->
+	
         <div class="box-tools pull-right">
 
         <?php
@@ -92,7 +92,7 @@ if($_SESSION["profile"] == "Special"){
           </div>
 
            <div class="col-md-6 col-xs-12">
-             
+                   <h3 class="box-title">Best Seller</h3>
             <?php
 
             include "reports/bestseller-products.php";
@@ -101,24 +101,7 @@ if($_SESSION["profile"] == "Special"){
 
           </div>
 
-          <div class="col-md-6 col-xs-12">
-           
-            <?php
-
-
-            ?>
-
-         </div>
-
-         <div class="col-md-6 col-xs-12">
-           
-            <?php
-
-        
-
-            ?>
-
-         </div>
+          
           
         </div>
 

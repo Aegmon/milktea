@@ -1,5 +1,6 @@
 <?php
 
+
 if ($_SESSION["profile"] == "Seller") {
     echo '<script>
         window.location = "home";
@@ -34,25 +35,51 @@ if ($_SESSION["profile"] == "Seller") {
                         <tr>
                             <th style="width:10px">#</th>
                             <th>Ingredient</th>
-                            <th>Quantity</th>
+                            <th>Measurement</th>
                             <th>Size</th>
+                            <th>Price per Addons</th>
+                            <th>Measurement per Addons</th>
                             <th>Actions</th>
                         </tr> 
                     </thead>
                     <tbody>
                         <?php
+                        // Adjust the controller method to fetch ingredients
                         $item = null; 
                         $value = null;
-
-                        // Adjust the controller method to fetch ingredients
                         $ingredients = ControllerIngredients::ctrShowIngredients($item, $value);
 
                         foreach ($ingredients as $key => $value) {
+                            // Define stock alert and quantity
+                            $stockAlert = $value['stockalert'];
+                            $quantity = $value['quantity'];
+                            $badgeClass = '';
+
+                            // Determine badge color based on quantity
+                            if ($quantity > ($stockAlert * 1.5)) {
+                                $badgeClass = 'btn-success'; // More than 50% higher
+                            } elseif ($quantity >= ($stockAlert * 0.5)) {
+                                $badgeClass = 'btn-warning'; // Between 50% and 100%
+                            } elseif ($quantity >= ($stockAlert * 0.25)) {
+                                $badgeClass = 'btn-danger'; // Between 25% and 50%
+                            } else {
+                                $badgeClass = 'btn-danger'; // Below 25%
+                            }
+
+                            // Display alert if stock is low
+                            if ($quantity < $stockAlert) {
+                                echo '<div class="alert alert-danger" role="alert">
+                                          Low Stock for <strong> <a href="#" class="text-white" onclick="editIngredient(' . $value["id"] . ')">' . $value['ingredient'] . '</a></strong>
+                                      </div>';
+                            }
+
                             echo '<tr>
                                 <td>' . ($key + 1) . '</td>
                                 <td class="text-uppercase">' . $value['ingredient'] . '</td>
-                                <td>' . $value['quantity'] . '</td>
+                                <td><button class="btn ' . $badgeClass . '">' . $quantity . '</button></td>
                                 <td>' . $value['size'] . '</td>
+                                <td>₱' . $value['addons_price'] . '</td>
+                                <td>' . $value['addons_measurement'] . ' ' . $value['size'] . '</td>
                                 <td>
                                     <div class="btn-group">
                                         <button class="btn btn-primary btnEditIngredient" idIngredient="' . $value["id"] . '" data-toggle="modal" data-target="#editIngredients"><i class="fa fa-pencil"></i></button>
@@ -111,6 +138,24 @@ if ($_SESSION["profile"] == "Seller") {
                                 </select>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-cubes"></i></span>
+                                <input class="form-control input-lg" type="number" name="newPrice" placeholder="Add Price For Addons" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-cubes"></i></span>
+                                <input class="form-control input-lg" type="number" name="newMeasurement" placeholder="Add Measure Per Addons" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-cubes"></i></span>
+                                <input class="form-control input-lg" type="number" name="stockalert" placeholder="Stock Alert" required>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -125,6 +170,80 @@ if ($_SESSION["profile"] == "Seller") {
 <?php
 $createIngredient = new ControllerIngredients();
 $createIngredient->ctrCreateIngredient();
+?>
+
+<!--=====================================
+=            module edit Ingredients            =
+======================================-->
+<!-- Modal -->
+<div id="editIngredients" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <form role="form" method="POST">
+                <div class="modal-header" style="background: #DD4B39; color: #fff">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Edit Ingredient</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="box-body">
+                        <!-- Input for ingredient name -->
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-th"></i></span>
+                                <input class="form-control input-lg" type="text" id="editIngredient" name="editIngredient" required>
+                                <input type="hidden" name="idIngredient" id="idIngredient" required>
+                            </div>
+                        </div>
+                        <!-- Input for quantity -->
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-cubes"></i></span>
+                                <input class="form-control input-lg" type="number" id="editQuantity" name="editQuantity" required>
+                            </div>
+                        </div>
+                        <!-- Input for size -->
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-balance-scale"></i></span>
+                                <select class="form-control input-lg" id="editSize" name="editSize" required>
+                                    <option value="grams">Grams</option>
+                                    <option value="mililiters">Milliliters</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-cubes"></i></span>
+                                <input class="form-control input-lg" type="number" id="editPrice" name="editPrice" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-cubes"></i></span>
+                                <input class="form-control input-lg" type="number" id="editMeasurement" name="editMeasurement" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-cubes"></i></span>
+                                <input class="form-control input-lg" type="number" id="editStockAlert" name="editStockAlert" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Update Ingredient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<?php
+$editIngredient = new ControllerIngredients();
+$editIngredient->ctrEditIngredient();
 ?>
 
 <!--=====================================

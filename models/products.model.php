@@ -23,6 +23,19 @@ class ProductsModel {
         $stmt->close();
         $stmt = null;
     }
+
+       static public function mdlShowProductsbydate($table, $item, $value, $order, $dateQuery) {
+        if ($item != null) {
+            $stmt = Connection::connect()->prepare("SELECT * FROM $table WHERE $item = :$item AND $dateQuery ORDER BY $order DESC");
+            $stmt->bindParam(":".$item, $value, PDO::PARAM_STR);
+        } else {
+            $stmt = Connection::connect()->prepare("SELECT * FROM $table WHERE $dateQuery ORDER BY $order DESC");
+        }
+        
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
 	static public function mdlGetIngredientsByProductId($table, $productId) {
     $stmt = Connection::connect()->prepare("SELECT ingredient_id, quantity FROM $table WHERE product_id = :product_id");
     $stmt->bindParam(":product_id", $productId, PDO::PARAM_INT);
@@ -61,14 +74,15 @@ class ProductsModel {
     =============================================*/
 static public function mdlAddProduct($table, $data) {
     // Prepare the SQL statement
-    $stmt = Connection::connect()->prepare("INSERT INTO $table (idCategory, code, description, image, stock, sellingPrice) VALUES (:idCategory, :code, :description, :image, :stock, :sellingPrice)");
+    $stmt = Connection::connect()->prepare("INSERT INTO $table (idCategory, code, description, image, stock, size, sellingPrice) VALUES (:idCategory, :code, :description, :image, :stock, :size, :sellingPrice)");
 
     // Bind the parameters
     $stmt->bindParam(":idCategory", $data["idCategory"], PDO::PARAM_INT);
     $stmt->bindParam(":code", $data["code"], PDO::PARAM_STR);
     $stmt->bindParam(":description", $data["description"], PDO::PARAM_STR);
     $stmt->bindParam(":image", $data["image"], PDO::PARAM_STR);
-    $stmt->bindParam(":stock", $data["stock"], PDO::PARAM_INT); // Use PDO::PARAM_INT for stock
+    $stmt->bindParam(":stock", $data["stock"], PDO::PARAM_INT);
+    $stmt->bindParam(":size", $data["size"], PDO::PARAM_STR);
     $stmt->bindParam(":sellingPrice", $data["sellingPrice"], PDO::PARAM_STR);
 
     // Execute the statement and check for success

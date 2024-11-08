@@ -80,6 +80,7 @@ public function showProductsTable() {
                 "' . $image . '",
                 "' . $products[$i]["description"] . '",
                 "' . (isset($categories["Category"]) ? $categories["Category"] : "Unknown") . '",
+                "' . $products[$i]["size"] . '",
                 "₱ ' . $products[$i]["sellingPrice"] . '",
                 "' . $products[$i]["date"] . '",
                 "' . $buttons . '"

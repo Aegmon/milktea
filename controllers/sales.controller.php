@@ -33,6 +33,7 @@ static public function ctrCreateSale() {
         =============================================*/
 
         $productsList = json_decode($_POST["productsList"], true);
+        $addonsList = json_decode($_POST["addonList"], true); // Get the addons list
         $totalPurchasedProducts = array();
 
         if (is_array($productsList) && !empty($productsList)) {
@@ -42,7 +43,6 @@ static public function ctrCreateSale() {
                 $tableProducts = "products";
                 $item = "id";
                 $valueProductId = $value["id"];
-				
                 $order = "id";
 
                 $getProduct = ProductsModel::mdlShowProducts($tableProducts, $item, $valueProductId, $order);
@@ -55,14 +55,30 @@ static public function ctrCreateSale() {
                 // Update stock
                 $item1b = "stock";
                 $value1b = $getProduct["stock"] - $value["quantity"]; // Adjust stock based on quantity sold
-                // $newStock = ProductsModel::mdlUpdateProduct($tableProducts, $item1b, $value1b, $valueProductId);
+                $newStock = ProductsModel::mdlUpdateProduct($tableProducts, $item1b, $value1b, $valueProductId);
 
-                // Update ingredient quantities
+                // Update ingredient quantities for products
                 self::ctrUpdateIngredients($valueProductId, $value["quantity"]);
             }
         } else {
             echo "Error: Product list is empty or invalid.";
             return; // Exit if the product list is invalid
+        }
+
+        /*=============================================
+        PROCESS ADDONS
+        =============================================*/
+
+        if (is_array($addonsList) && !empty($addonsList)) {
+            foreach ($addonsList as $addon) {
+                // Assume each addon has an 'id', 'quantity', and 'price'
+                $ingredientId = $addon["id"]; // Get the ingredient ID
+                $quantityPurchased = $addon["quantity"]; // Get the purchased quantity
+                $price = $addon["price"]; // Get the price of the addon
+
+                // Update ingredient quantities for addons
+                self::ctrUpdateIngredients($ingredientId, $quantityPurchased);
+            }
         }
 
         /*=============================================
@@ -76,9 +92,10 @@ static public function ctrCreateSale() {
 
         $data = array(
             "idSeller" => $_POST["idSeller"],
-            "idCustomer" => "2",
+            "idCustomer" => "2", // Consider making this dynamic based on the actual customer
             "code" => $_POST["newSale"],
             "products" => $_POST["productsList"],
+			"addons" => $_POST["addonList"],
             "netPrice" => $netPrice,
             "totalPrice" => $_POST["saleTotal"],
             "paymentMethod" => $_POST["listPaymentMethod"]
@@ -103,6 +120,7 @@ static public function ctrCreateSale() {
         }
     }
 }
+
 /*=============================================
 UPDATE INGREDIENT QUANTITIES BASED ON PRODUCT SOLD
 =============================================*/
@@ -152,7 +170,48 @@ static public function ctrUpdateIngredients($productId, $quantityPurchased) {
         }
     } else {
         error_log("Error: No ingredients found for the product ID: $productId");
-        echo "Error: No ingredients found for the product ID.";
+        // echo "Error: No ingredients found for the product ID.";
+    }
+}
+
+/*=============================================
+UPDATE INGREDIENT QUANTITIES BASED ON ADDONS SOLD
+=============================================*/
+static public function ctrUpdateAddonIngredients($ingredientId, $quantityPurchased) {
+    // Define the tables
+    $tableIngredients = "ingredients";
+
+    // Log the initial parameters received
+    error_log("ctrUpdateAddonIngredients called with ingredientId: $ingredientId and quantityPurchased: $quantityPurchased");
+
+    // Get the ingredient details
+    $stmt = Connection::connect()->prepare("SELECT * FROM $tableIngredients WHERE id = :ingredientId");
+    $stmt->bindParam(":ingredientId", $ingredientId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $ingredientDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Log the SQL query and results
+    error_log("SQL Query executed: SELECT * FROM $tableIngredients WHERE id = $ingredientId");
+    error_log("Results: " . print_r($ingredientDetails, true)); // Log the retrieved ingredient
+
+    if (!empty($ingredientDetails)) {
+        $quantityAvailable = $ingredientDetails["quantity"]; 
+        $quantityToUpdate = $quantityAvailable - $quantityPurchased;
+
+        // Update the ingredient quantity in the database
+        $updateResult = IngredientsModel::mdlUpdateIngredientQuantity($tableIngredients, array(
+            "id" => $ingredientId,
+            "quantity" => $quantityToUpdate
+        ));
+
+        if ($updateResult == "ok") {
+            error_log("Successfully updated addon ingredient ID: $ingredientId with new quantity: $quantityToUpdate");
+        } else {
+            error_log("Failed to update addon ingredient ID: $ingredientId, result: $updateResult");
+        }
+    } else {
+        error_log("Error: No ingredient found with ID: $ingredientId");
     }
 }
 
@@ -548,35 +607,24 @@ static public function ctrUpdateIngredients($productId, $quantityPurchased) {
 			echo utf8_decode("<table border='0'> 
 
 					<tr> 
-					<td style='font-weight:bold; border:1px solid #eee;'>CÓDIGO</td> 
-					<td style='font-weight:bold; border:1px solid #eee;'>customer</td>
-					<td style='font-weight:bold; border:1px solid #eee;'>Seller</td>
-					<td style='font-weight:bold; border:1px solid #eee;'>quantity</td>
+					<td style='font-weight:bold; border:1px solid #eee;'>Code</td> 
+	
 					<td style='font-weight:bold; border:1px solid #eee;'>products</td>
-					<td style='font-weight:bold; border:1px solid #eee;'>tax</td>
-					<td style='font-weight:bold; border:1px solid #eee;'>netPrice</td>		
+					<td style='font-weight:bold; border:1px solid #eee;'>tax</td>	
 					<td style='font-weight:bold; border:1px solid #eee;'>TOTAL</td>		
-					<td style='font-weight:bold; border:1px solid #eee;'>METODO DE PAGO</td	
-					<td style='font-weight:bold; border:1px solid #eee;'>FECHA</td>		
+					<td style='font-weight:bold; border:1px solid #eee;'>Mode of Payment</td	
+					<td style='font-weight:bold; border:1px solid #eee;'>Date</td>		
 					</tr>");
 
 			foreach ($sales as $row => $item){
 
-				$customer = ControllerCustomers::ctrShowCustomers("id", $item["idCustomer"]);
-				$Seller = ControllerUsers::ctrShowUsers("id", $item["idSeller"]);
 
 			 echo utf8_decode("<tr>
 			 			<td style='border:1px solid #eee;'>".$item["code"]."</td> 
-			 			<td style='border:1px solid #eee;'>".$customer["name"]."</td>
-			 			<td style='border:1px solid #eee;'>".$Seller["name"]."</td>
+		
 			 			<td style='border:1px solid #eee;'>");
 
 			 	$products =  json_decode($item["products"], true);
-
-			 	foreach ($products as $key => $valueproducts) {
-			 			
-			 			echo utf8_decode($valueproducts["quantity"]."<br>");
-			 		}
 
 			 	echo utf8_decode("</td><td style='border:1px solid #eee;'>");	
 
@@ -587,9 +635,8 @@ static public function ctrUpdateIngredients($productId, $quantityPurchased) {
 		 		}
 
 		 		echo utf8_decode("</td>
-					<td style='border:1px solid #eee;'>$ ".number_format($item["tax"],2)."</td>
-					<td style='border:1px solid #eee;'>$ ".number_format($item["netPrice"],2)."</td>	
-					<td style='border:1px solid #eee;'>$ ".number_format($item["totalPrice"],2)."</td>
+	
+					<td style='border:1px solid #eee;'>Php.".number_format($item["totalPrice"],2)."</td>
 					<td style='border:1px solid #eee;'>".$item["paymentMethod"]."</td>
 					<td style='border:1px solid #eee;'>".substr($item["saledate"],0,10)."</td>		
 		 			</tr>");

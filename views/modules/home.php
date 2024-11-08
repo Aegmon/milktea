@@ -26,24 +26,35 @@
       
       <?php
 
-        if($_SESSION["profile"] =="Administrator"){
+       
 
           include "home/top-boxes.php";
 
-        }
+        
 
       ?>
     
     </div>
         <div class="row p-2">
+              <div class="col-lg-12">
+      <?php
+
+    if($_SESSION["profile"] =="Administrator"){
+
+          include "home/stockdata.php";
+
+    }
+
+      ?>
+       </div>
       <div class="col-lg-12">
       <?php
 
-   
+    if($_SESSION["profile"] =="Administrator"){
 
           include "home/ingredientsData.php";
 
-    
+    }
 
       ?>
        </div>
@@ -54,11 +65,11 @@
 
       <?php
 
-        if($_SESSION["profile"] =="Administrator"){
+  
 
           include "reports/sales-graph.php";
 
-        }
+
 
       ?>
       
@@ -68,29 +79,17 @@
         
         <?php
 
-          if($_SESSION["profile"] =="Administrator"){
+  
 
             include "reports/bestseller-products.php";
 
-          }
+       
 
         ?>
 
       </div>
 
-       <div class="col-lg-6">
-        
-        <?php
-
-          if($_SESSION["profile"] =="Administrator"){
-
-            include "home/recent-products.php";
-
-          }
-
-        ?>
-
-      </div>
+   
 
       <div class="col-lg-12">
            

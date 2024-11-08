@@ -55,6 +55,7 @@ $categoryID = $_GET["category_id"] ?? '';
              <th>Image</th>
              <th>Description</th>
              <th>Category</th>
+             <th>Size</th>
              <th>Selling Price</th>
              <th>Date added</th>
              <th>Actions</th>
@@ -147,7 +148,7 @@ $categoryID = $_GET["category_id"] ?? '';
       <button type="button" class="btn btn-primary" id="addIngredientBtn" style="margin-bottom:20px">Add Ingredient</button>
 
         
-   <div class="form-group">
+            <div class="form-group">
               <div class="input-group">
                 <span class="input-group-addon"><i class="fa fa-th"></i></span>
                 <select class="form-control input-lg" id="newSize" name="newSize">

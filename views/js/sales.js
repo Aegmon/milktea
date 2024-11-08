@@ -21,20 +21,98 @@ $('.salesTable').DataTable({
 	"processing": true
 });
 
- 
+ /*=============================================
+ADDING ADDONS TO THE SALE FROM THE TABLE
+=============================================*/
+
+$(".addonTable tbody").on("click", "button.btnAddons", function() {
+    var idIngredient = $(this).attr("idIngredient");
+    var price = parseFloat($(this).attr("data-price"));
+    var addon = $(this).attr("data-addon");
+
+
+$(".newProduct").append(
+    '<div class="row" style="padding:5px 15px">' +
+        '<div class="col-xs-6" style="padding-right:0px">' +
+            '<div class="input-group">' +
+                '<span class="input-group-addon">' +
+                    '<button type="button" class="btn btn-danger btn-xs removeAddons" idIngredient="' + idIngredient + '">' +
+                        '<i class="fa fa-times"></i>' +
+                    '</button>' +
+                '</span>' +
+                '<input type="text" class="form-control newAddon" idIngredient="' + idIngredient + '" name="addAddon" value="' + addon + '" readonly required>' +
+            '</div>' +
+        '</div>' +
+        '<div class="col-xs-3 enterQuantity" style="padding-left:0px">' +
+            '<div class="input-group">' +
+                '<span class="input-group-addon"><i class="fa fa-shopping-cart"></i></span>' +
+                '<input type="number" class="form-control newAddonQuantity" name="newAddonQuantity" min="1" value="1" required>' +
+            '</div>' +
+        '</div>' +
+        '<div class="col-xs-3 enterPrice" style="padding-left:0px">' +
+            '<div class="input-group">' +
+                '<span class="input-group-addon"><i class="fa fa-money"></i></span>' +
+                '<input type="text" class="form-control newAddonPrice" realPrice="' + price + '" name="newAddonPrice" value="' + price.toFixed(2) + '" readonly required>' +
+            '</div>' +
+        '</div>' +
+    '</div>'
+);
+
+    addingTotalPrices();
+    listAddons();
+
+    // Update total prices after quantity change
+    $(".newProduct").on("change", ".newAddonQuantity", function() {
+        var priceElement = $(this).closest('.row').find('.newAddonPrice');
+        var realPrice = Number(priceElement.attr("realPrice"));
+        var quantity = Number($(this).val());
+
+        // Calculate and update final price
+        if (!isNaN(realPrice) && quantity > 0) {
+            var finalPrice = quantity * realPrice;
+            priceElement.val(finalPrice.toFixed(2));
+            addingTotalPrices(); // Update total prices whenever quantity changes
+        }
+    });
+});
+
+function listAddons() {
+    var addonlist = [];
+    $(".newAddon").each(function(index) {
+        var addon = $(this);
+        var quantity = $(".newAddonQuantity").eq(index);
+        var price = $(".newAddonPrice").eq(index);
+        addonlist.push({
+            "id": addon.attr("idIngredient"),
+            "addon": addon.val(),
+            "quantity": quantity.val(),
+            "price": price.attr("realPrice"),
+            "totalPrice": price.val()
+        });
+    });
+
+    $("#addonList").val(JSON.stringify(addonlist));
+}
+
+
 /*=============================================
 ADDING PRODUCTS TO THE SALE FROM THE TABLE
 =============================================*/
 
+// Event handler for adding a product sale
 $(".salesTable tbody").on("click", "button.addProductSale", function() {
     var idProduct = $(this).attr("idProduct");
+    var productSize = $(this).data("size"); // Get the selected size
 
-    // Remove the "addProductSale" class to prevent adding the same product again
-    $(this).removeClass("btn-primary addProductSale");
-    $(this).addClass("btn-default");
+    // Check if a size is selected
+    if (!productSize) {
+        alert("Please select a size (Regular or Large) before adding the product.");
+        return;
+    }
 
     var datum = new FormData();
     datum.append("idProduct", idProduct);
+    datum.append("productSize", productSize); // Send the selected size
 
     $.ajax({
         url: "ajax/products.ajax.php",
@@ -45,87 +123,139 @@ $(".salesTable tbody").on("click", "button.addProductSale", function() {
         processData: false,
         dataType: "json",
         success: function(answer) {
-            console.log("AJAX Response:", answer);
-
-            // Check if the status is 'success' and if product data exists
             if (answer.status === 'success' && answer.product) {
-                // Retrieve product details from the product object
                 var description = answer.product.description;
-                var price = answer.product.sellingPrice;
+                var price = parseFloat(answer.product.sellingPrice);
 
-                console.log("Description:", description);
-                console.log("Price:", price);
+                // Check if the product already exists
+                var existingProduct = $(".newProduct").find(`.newProductDescription[idProduct="${answer.product.id}"][data-size="${productSize}"]`);
 
-                if (description === undefined || price === undefined) {
-                    console.error("Missing product data:", { description, price });
-                    return;
+                if (existingProduct.length) {
+                    // Remove the existing product entry
+                    existingProduct.closest('.row').remove();
+                    $(this).removeClass("btn-primary addProductSale").addClass("btn-default");
                 }
 
-                // Append the product details including quantity input
+                // Append the product details including size
                 $(".newProduct").append(
                     '<div class="row" style="padding:5px 15px">' +
-                        '<!-- Product description -->' +
                         '<div class="col-xs-6" style="padding-right:0px">' +
                             '<div class="input-group">' +
                                 '<span class="input-group-addon">' +
-                                    '<button type="button" class="btn btn-danger btn-xs removeProduct" idProduct="' + answer.product.id + '">' +
+                                    '<button type="button" class="btn btn-danger btn-xs removeProduct" idProduct="' + answer.product.id + '" data-size="' + productSize + '">' +
                                         '<i class="fa fa-times"></i>' +
                                     '</button>' +
+                                    '<button type="button" class="btn btn-success btn-xs btnViewProduct" idProduct="' + answer.product.id + '" data-toggle="modal" data-target="#modalViewProduct">' +
+                                        '<i class="fa fa-eye"></i>' +
+                                    '</button>' +
                                 '</span>' +
-                                '<input type="text" class="form-control newProductDescription" idProduct="' + answer.product.id + '" name="addProductSale" value="' + description + '" readonly required>' +
+                                '<input type="text" class="form-control newProductDescription" idProduct="' + answer.product.id + '" data-size="' + productSize + '" name="addProductSale" value="' + description + ' (' + productSize + ')" readonly required>' +
                             '</div>' +
                         '</div>' +
-                        '<!-- Product quantity -->' +
                         '<div class="col-xs-3 enterQuantity" style="padding-left:0px">' +
                             '<div class="input-group">' +
                                 '<span class="input-group-addon"><i class="fa fa-shopping-cart"></i></span>' +
                                 '<input type="number" class="form-control newProductQuantity" name="newProductQuantity" min="1" value="1" required>' +
                             '</div>' +
                         '</div>' +
-                        '<!-- Product price -->' +
                         '<div class="col-xs-3 enterPrice" style="padding-left:0px">' +
                             '<div class="input-group">' +
                                 '<span class="input-group-addon"><i class="fa fa-money"></i></span>' +
-                                '<input type="text" class="form-control newProductPrice" realPrice="' + price + '" name="newProductPrice" value="' + price + '" readonly required>' +
+                                '<input type="text" class="form-control newProductPrice" realPrice="' + price + '" name="newProductPrice" value="' + price.toFixed(2) + '" readonly required>' +
                             '</div>' +
                         '</div>' +
                     '</div>'
                 );
 
-                // Update total prices immediately after adding a new product
+                // Update total prices after adding the product
                 addingTotalPrices();
                 listProducts();
-
-                // FORMAT PRODUCT PRICE
-                $(".newProductPrice").number(true, 2);
-
-                // Add event listener for quantity change to update price
-                $(".newProduct").on("change", "input.newProductQuantity", function() {
-                    var priceElement = $(this).closest('.row').find('.newProductPrice');
-                    var realPrice = Number(priceElement.attr("realPrice"));
-                    var quantity = Number($(this).val());
-
-                    // Calculate and update final price
-                    if (!isNaN(realPrice) && quantity > 0) {
-                        var finalPrice = quantity * realPrice;
-                        priceElement.val(finalPrice.toFixed(2));
-                    }
-
-                    // Update total prices after quantity change
-                    addingTotalPrices();
-                });
-
             } else {
-                console.error("Product data not found or error in response.");
+                console.error("Error adding product:", answer.message);
             }
         },
-        error: function(xhr, status, error) {
-            console.error("AJAX Error:", status, error);
+        error: function(err) {
+            console.error("Error during AJAX request:", err);
         }
     });
 });
 
- 
+// Event handler for size button clicks
+$(document).on('click', '.btn-size', function() {
+    var productId = $(this).attr("idProduct"); // Get the product ID
+    var productSize = $(this).data("size"); // Get the size (Regular or Large)
+
+    // Update the add button to reflect the selected size
+    var addButton = $(this).closest('tr').find('.addProductSale');
+    addButton.attr('idProduct', productId);
+    addButton.data('size', productSize); // Use data() instead of attr() for better handling
+    addButton.text('Add ' + productSize); // Update button text
+
+    // Highlight the selected size button
+    $(this).siblings().removeClass('active');
+    $(this).addClass('active');
+});
+
+$(".newProduct").on("click", "button.btnViewProduct", function () {
+    var idProduct = $(this).attr("idProduct");
+
+    // Clear previous ingredients
+    $("#ingredientsList").empty();
+
+    // AJAX request to get product details including ingredients
+    $.ajax({
+        url: "ajax/products.ajax.php",
+        method: "POST",
+        data: { idProduct: idProduct },
+        dataType: "json",
+        success: function (response) {
+            console.log("AJAX Response:", response); // Debugging
+
+            // Check if the product details were received
+            if (response && response.product) {
+                // Set product title and description
+                $("#productTitle").text(response.product.name); // Assuming the product has a name field
+                $("#productDescription").text(response.product.description); // Assuming a description field exists
+
+                // Check if ingredients were received
+                if (response.ingredients && response.ingredients.length > 0) {
+                    // Loop through each ingredient and append to the list
+                    response.ingredients.forEach(function (ingredient) {
+                        if (ingredient.measurement === 'mililiters') {
+                            ingredient.measurement = 'ml'; // Convert measurement to ml if needed
+                        }
+                        $("#ingredientsList").append(
+                            `<li class="list-group-item">
+                                <h3>${ingredient.ingredient}</h3>
+                                <p>Measurement: <strong>${ingredient.ingredient_needed}</strong> ${ingredient.measurement}</p>
+                            </li>`
+                        );
+                    });
+                } else {
+                    $("#ingredientsList").append(
+                        `<li class="list-group-item">No ingredients found for this product.</li>`
+                    );
+                }
+
+                // Show the modal after populating data
+                $("#modalViewProduct").modal("show");
+            } else {
+                console.error("Product data not found in response.");
+                $("#ingredientsList").append(
+                    `<li class="list-group-item">Error: Product not found.</li>`
+                );
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error:", textStatus, errorThrown); // Debugging
+            console.log("Response Text:", jqXHR.responseText); // Debugging
+            $("#ingredientsList").append(
+                `<li class="list-group-item">Error loading ingredients.</li>`
+            );
+        }
+    });
+});
+
 /*=============================================
 WHEN TABLE LOADS EVERYTIME THAT NAVIGATE IN IT
 =============================================*/
@@ -140,6 +270,26 @@ $(".salesTable").on("draw.dt", function(){
 
 			$("button.recoverButton[idProduct='"+listIdProducts[i]["idProduct"]+"']").removeClass('btn-default');
 			$("button.recoverButton[idProduct='"+listIdProducts[i]["idProduct"]+"']").addClass('btn-primary addProductSale');
+
+		}
+
+
+	}
+
+
+})
+
+
+$(".addonTable").on("draw.dt", function(){
+
+	if(localStorage.getItem("removeAddons") != null){
+
+		var listIdProducts = JSON.parse(localStorage.getItem("removeAddons"));
+
+		for(var i = 0; i < listIdProducts.length; i++){
+
+			$("button.recoverButtonaddons[idIngredient='"+listIdProducts[i]["idIngredient"]+"']").removeClass('btn-default');
+			$("button.recoverButtonaddons[idIngredient='"+listIdProducts[i]["idIngredient"]+"']").addClass('btn-primary btnAddons');
 
 		}
 
@@ -206,6 +356,49 @@ $(".saleForm").on("click", "button.removeProduct", function(){
 	}
 
 })
+var idRemoveAddon = [];
+
+// Clear previous "removeAddons" data if it exists in localStorage
+localStorage.removeItem("removeAddons");
+
+$(".saleForm").on("click", "button.removeAddons", function() {
+    var idIngredient = $(this).attr("idIngredient");
+
+    console.log("idIngredient", idIngredient);
+
+    // Remove the parent row of the clicked button (likely to be an addon)
+    $(this).parent().parent().parent().parent().remove();
+
+    // If there is no previous "removeAddons" data in localStorage, initialize idRemoveAddon array
+    if (localStorage.getItem("removeAddons") === null) {
+        idRemoveAddon = [];
+    } else {
+        // Otherwise, retrieve existing data from localStorage and combine it with the new id
+        idRemoveAddon = JSON.parse(localStorage.getItem("removeAddons"));
+    }
+
+    // Push the current ingredient id to the removeAddons array
+    idRemoveAddon.push({ "idIngredient": idIngredient });
+
+    // Store the updated idRemoveAddon array in localStorage
+    localStorage.setItem("removeAddons", JSON.stringify(idRemoveAddon));
+
+    // Change the "recover" button's class back to the "Add" button's original state
+    $("button.recoverButton[idIngredient='" + idIngredient + "']")
+        .removeClass('btn-default')
+        .addClass('btn-primary btnAddons');
+
+    // Handle total price adjustments after item removal
+    if ($(".newProducto").children().length == 0) {
+        $("#newTotalSale").val(0);
+        $("#totalSale").val(0);
+        $("#newTotalSale").attr("totalSale", 0);
+    } else {
+        // Recalculate total prices
+        addingTotalPrices();
+        listProducts();
+    }
+});
 
 /*=============================================
 ADDING PRODUCT FROM A DEVICE
@@ -358,75 +551,82 @@ MODIFY QUANTITY
 =============================================*/
 
 $(".saleForm").on("change", "input.newProductQuantity", function() {
-    // Find the price element
-    var priceElement = $(this).parent().parent().find(".enterPrice .newProductPrice");
-
-    // Get the real price from the attribute
+    var priceElement = $(this).closest('.row').find(".enterPrice .newProductPrice");
     var realPrice = Number(priceElement.attr("realPrice"));
-    
-    // Debugging log to check realPrice value
-    console.log("Real price:", realPrice);
-
-    // Get the current quantity from the input
     var quantity = Number($(this).val());
-    
-    // Debugging log for the quantity
-    console.log("Current quantity:", quantity);
 
-  
+    // Validate realPrice and quantity
+    if (isNaN(realPrice) || isNaN(quantity) || quantity < 1) {
+        console.error("Invalid price or quantity.");
+        return;
+    }
+
     // Calculate final price based on quantity and real price
     var finalPrice = quantity * realPrice;
-    
-    // Check if finalPrice is valid
-    if (isNaN(finalPrice)) {
-        console.error("Final price calculation resulted in NaN");
-        return; // Exit if the final price is invalid
-    }
 
     // Set the calculated final price to the price input
     priceElement.val(finalPrice.toFixed(2)); // Format to 2 decimal places
-
-    // Log the final price for debugging
     console.log("Final price:", finalPrice);
 
     // Update total prices
     addingTotalPrices();
-    listProducts(); // Call to listProducts() to update product list
+    listProducts(); // Update product list
 });
+
 
 /*============================================ 
 PRICES ADDITION 
 =============================================*/
 function addingTotalPrices() {
-    var priceItem = $(".newProductPrice");
     var arrayAdditionPrice = [];  
 
-    for (var i = 0; i < priceItem.length; i++) {
-        // Push each price value into the array
-        var itemPrice = Number($(priceItem[i]).val());
-        if (!isNaN(itemPrice)) { // Check if itemPrice is a valid number
+    // Calculate the total price for base products
+    $(".newProductPrice").each(function() {
+        var itemPrice = Number($(this).val());
+        if (!isNaN(itemPrice)) {
             arrayAdditionPrice.push(itemPrice);
         }
-    }
+    });
 
-    // Log the prices being added for debugging
-    console.log("Prices array:", arrayAdditionPrice);
+    // Calculate the total price for add-ons
+    var addonTotalPrice = 0; 
+    $(".newAddonPrice").each(function() {
+        var addonPrice = Number($(this).val());
+        if (!isNaN(addonPrice)) {
+            addonTotalPrice += addonPrice; // Sum the total price of each add-on
+        }
+    });
 
-    // Function to add up all the prices in the array
-    function additionArrayPrices(totalSale, numberArray) {
-        return totalSale + numberArray;
-    }
-
-    // Calculate the total price using reduce
-    var addingTotalPrice = arrayAdditionPrice.reduce(additionArrayPrices, 0); // Initialize totalSale to 0
+    // Combine the product total and the add-on total
+    var addingTotalPrice = arrayAdditionPrice.reduce((total, price) => total + price, 0) + addonTotalPrice; 
 
     // Log the calculated total price for debugging
-    console.log("Total price:", addingTotalPrice);
+    console.log("Total price (including addons):", addingTotalPrice);
 
     // Update the total sale inputs
-    $("#newSaleTotal").val(addingTotalPrice.toFixed(2)); // Format to 2 decimal places
-    $("#saleTotal").val(addingTotalPrice.toFixed(2)); // Format to 2 decimal places
+    $("#newSaleTotal, #saleTotal").val(addingTotalPrice.toFixed(2)); // Format to 2 decimal places
     $("#newSaleTotal").attr("totalSale", addingTotalPrice);
+}
+
+
+// Function to create the list of addons
+function listAddons() {
+    var addonlist = [];
+    var addons = $(".newAddon");
+    var quantities = $(".newAddonQuantity");
+    var prices = $(".newAddonPrice");
+
+    for (var i = 0; i < addons.length; i++) {
+        addonlist.push({
+            "id": $(addons[i]).attr("idIngredient"),
+            "addon": $(addons[i]).val(),
+            "quantity": $(quantities[i]).val(),
+            "price": $(prices[i]).attr("realPrice"),
+            "totalPrice": $(prices[i]).val()
+        });
+    }
+
+    $("#addonList").val(JSON.stringify(addonlist));
 }
 
 
@@ -791,3 +991,15 @@ $(".openXML").click(function(){
 
 })
 
+function showAddonTable() {
+    var table = document.getElementById("addonTable");
+    var button = document.getElementById("addonButton");
+
+    if (table.style.display === "none") {
+        table.style.display = "block";
+        button.innerHTML = 'Close Addons <i class="fa fa-minus"></i>';
+    } else {
+        table.style.display = "none";
+        button.innerHTML = 'Addons <i class="fa fa-plus"></i>';
+    }
+}

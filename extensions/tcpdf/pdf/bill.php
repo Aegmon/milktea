@@ -22,9 +22,23 @@ class printBill {
 
         $saledate = substr($answerSale["saledate"], 0, -8);
         $products = json_decode($answerSale["products"], true);
+        $addons = json_decode($answerSale["addons"], true); // Assuming 'addons' is stored in JSON format
         $netPrice = number_format($answerSale["totalPrice"], 2);
         $tax = isset($answerSale["tax"]) ? number_format($answerSale["tax"], 2) : 0; // Set tax to 0 or retrieve it
-        $totalPrice = number_format($answerSale["totalPrice"], 2);
+
+        // Calculate total price including products and add-ons
+        $totalProductsPrice = floatval($answerSale["totalPrice"]);
+        $totalAddonsPrice = 0; // Initialize total add-ons price
+
+        // Calculate total price for add-ons
+        if (is_array($addons)) {
+            foreach ($addons as $addon) {
+                $totalAddonsPrice += floatval($addon["totalPrice"]); // Assuming totalPrice is in string format
+            }
+        }
+
+        // Calculate final total price
+        $finalTotalPrice = number_format($totalProductsPrice + $totalAddonsPrice, 2);
 
         // Fetch customer information
         $itemCustomer = "id";
@@ -54,26 +68,42 @@ class printBill {
 
         // Output products
         if (is_array($products)) {
-            foreach ($products as $key => $item) {
+            foreach ($products as $item) {
                 $unitValue = number_format($item["price"], 2);
-                $totalPrice = number_format($item["totalPrice"], 2);
+                $itemTotalPrice = number_format($item["totalPrice"], 2);
                 $block2 = <<<EOF
                 <table style="font-size:7px;">
                 <tr><td style="width:160px; text-align:left"> $item[description] </td></tr>
-                <tr><td style="width:160px; text-align:right">$ $unitValue Units * $item[quantity] = $ $totalPrice<br></td></tr>
+                <tr><td style="width:160px; text-align:right"> Php.  $unitValue Items * $item[quantity] = Php.  $itemTotalPrice<br></td></tr>
                 </table>
                 EOF;
                 $pdf->writeHTML($block2, false, false, false, false, '');
             }
         }
 
+        // Output add-ons
+        if (is_array($addons)) {
+            foreach ($addons as $addon) {
+                $addonPrice = number_format($addon["price"], 2);
+                $addonQuantity = $addon["quantity"];
+                $totalAddonPrice = number_format($addon["totalPrice"], 2);
+                $addonName = htmlspecialchars($addon["addon"]); // Get the add-on name safely
+                $blockAddons = <<<EOF
+                <table style="font-size:7px;">
+                <tr><td style="width:160px; text-align:left"> Add-on: $addonName </td></tr>
+                <tr><td style="width:160px; text-align:right"> Php.  $addonPrice Items * $addonQuantity = Php.  $totalAddonPrice<br></td></tr>
+                </table>
+                EOF;
+                $pdf->writeHTML($blockAddons, false, false, false, false, '');
+            }
+        }
+
         // Output total price and thank you note
         $block3 = <<<EOF
         <table style="font-size:7px; text-align:right">
-        <tr><td style="width:80px;"> NET: </td><td style="width:80px;">Php.$netPrice</td></tr>
-        <tr><td style="width:80px;"> TAX: </td><td style="width:80px;">Php. $tax</td></tr>
+        <tr><td style="width:80px;"> NET: </td><td style="width:80px;"> Php.  $netPrice</td></tr>
         <tr><td style="width:160px;"> --------------------------</td></tr>
-        <tr><td style="width:80px;"> TOTAL: </td><td style="width:80px;">Php. $totalPrice</td></tr>
+        <tr><td style="width:80px;"> TOTAL: </td><td style="width:80px;"> Php.  $netPrice</td></tr>
         <tr><td style="width:160px;"><br><br>Thank you for your purchase!</td></tr></table>
         EOF;
         $pdf->writeHTML($block3, false, false, false, false, '');

@@ -1,116 +1,123 @@
 <?php
+// Connection class for database connection (make sure this is defined elsewhere in your code)
 
-error_reporting(0);
+function getSalesData() {
+    $pdo = Connection::connect();
+    $query = "
+        SELECT DATE_FORMAT(saledate, '%Y-%m') AS sale_date, SUM(totalPrice) AS total_sales
+        FROM sales
+        GROUP BY sale_date
+        ORDER BY sale_date"; // Ensure results are ordered by date
 
-if(isset($_GET["initialDate"])){
+    $stmt = $pdo->prepare($query);
+    $stmt->execute();
 
-    $initialDate = $_GET["initialDate"];
-    $finalDate = $_GET["finalDate"];
+    $salesData = [];
+    $time = [];
+    $sales = [];
 
-}else{
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        // Populate salesData for current sales
+        $yearMonth = explode('-', $row['sale_date']);
+        $year = (int)$yearMonth[0];
+        $month = (int)$yearMonth[1];
 
-$initialDate = null;
-$finalDate = null;
+        $salesData[] = [
+            'year' => $year,
+            'month' => $month,
+            'monthlySales' => $row['total_sales']
+        ];
 
+        // Prepare time and sales arrays for regression
+        $timeValue = $year * 12 + $month;
+        $time[] = $timeValue;
+        $sales[] = $row['total_sales'];
+    }
+
+    // Step 2: Calculate linear regression for predictions
+    $n = count($time);
+    if ($n === 0) return []; // No data available
+
+    $timeSum = array_sum($time);
+    $salesSum = array_sum($sales);
+    $timeMean = $timeSum / $n;
+    $salesMean = $salesSum / $n;
+
+    // Calculate slope (m) and intercept (b)
+    $numerator = 0;
+    $denominator = 0;
+    for ($i = 0; $i < $n; $i++) {
+        $numerator += ($time[$i] - $timeMean) * ($sales[$i] - $salesMean);
+        $denominator += ($time[$i] - $timeMean) ** 2;
+    }
+    $m = $denominator ? $numerator / $denominator : 0;
+    $b = $salesMean - ($m * $timeMean);
+
+    // Step 3: Prepare data for output with predictions
+    $predictedSalesData = [];
+    foreach ($salesData as $data) {
+        $timeValue = $data['year'] * 12 + $data['month'];
+        $predictedSales = $m * $timeValue + $b;
+
+        $predictedSalesData[] = [
+            'y' => $data['year'] . '-' . str_pad($data['month'], 2, '0', STR_PAD_LEFT), // Format as 'YYYY-MM'
+            'realSales' => $data['monthlySales'],
+            'predictedSales' => round($predictedSales, 2)
+        ];
+    }
+
+    // Add future predictions for the next 12 months
+    for ($i = 1; $i <= 12; $i++) {
+        $futureTime = end($time) + $i;
+        $predictedSales = $m * $futureTime + $b;
+        $year = floor($futureTime / 12);
+        $month = $futureTime % 12;
+        $month = $month === 0 ? 12 : $month; // Adjust for month 0
+
+        $predictedSalesData[] = [
+            'y' => sprintf("%04d-%02d", $year, $month),
+            'realSales' => 0, // No actual sales for future months
+            'predictedSales' => round($predictedSales, 2)
+        ];
+    }
+
+    return $predictedSalesData; // Return as an array with actual and predicted sales
 }
 
-$answer = ControllerSales::ctrSalesDatesRange($initialDate, $finalDate);
-
-$arrayDates = array();
-$arraySales = array();
-$addingMonthPayments = array();
-
-foreach ($answer as $key => $value) {
-
-    #We capture only year and month
-	$singleDate = substr($value["saledate"],0,7);
-
-    #Introduce dates in arrayDates
-	array_push($arrayDates, $singleDate);
-
-	#We capture the sales
-	$arraySales = array($singleDate => $value["totalPrice"]);
-
-    #we add payments made in the same month
-	foreach ($arraySales as $key => $value) {
-		
-		$addingMonthPayments[$key] += $value;
-	}
-
-}
-
-
-$noRepeatDates = array_unique($arrayDates);
-
+$salesData = getSalesData(); // Call the function to get sales data
 
 ?>
 
-<!--=====================================
-SALES GRAPH
-======================================-->
-
-<!-- Log on to codeastro.com for more projects! -->
-<div class="box box-solid bg-blue">
-	
-	<div class="box-header">
-		
- 		<i class="fa fa-th"></i>
-
-  		<h3 class="box-title">Sales Graph</h3>
-
-	</div>
-
-	<div class="box-body border-radius-none newSalesGraph">
-
-		<div class="chart" id="line-chart-Sales" style="height: 250px;"></div>
-
-  </div>
-
+<!-- Sales Graph UI -->
+<div class="box box-solid">
+    <div class="box-header">
+        <i class="fa fa-th"></i>
+        <h3 class="box-title">Sales Graph</h3>
+    </div>
+    <div class="box-body border-radius-none newSalesGraph">
+        <!-- Combined Sales Chart -->
+        <div class="chart" id="line-chart-Sales" style="height: 250px;"></div>
+    </div>
 </div>
 
 <script>
-	
- var line = new Morris.Line({
-    element          : 'line-chart-Sales',
-    resize           : true,
-    data             : [
-
-    <?php
-
-    if($noRepeatDates != null){
-
-	    foreach($noRepeatDates as $key){
-
-	    	echo "{ y: '".$key."', Sales: ".$addingMonthPayments[$key]." },";
-
-
-	    }
-
-	    echo "{y: '".$key."', Sales: ".$addingMonthPayments[$key]." }";
-
-    }else{
-
-       echo "{ y: '0', Sales: '0' }";
-
-    }
-
-    ?>
-
-    ],
-    xkey             : 'y',
-    ykeys            : ['Sales'],
-    labels           : ['Sales'],
-    lineColors       : ['#efefef'],
-    lineWidth        : 2,
-    hideHover        : 'auto',
-    gridTextColor    : '#fff',
-    gridStrokeWidth  : 0.4,
-    pointSize        : 4,
-    pointStrokeColors: ['#efefef'],
-    gridLineColor    : '#efefef',
-    gridTextFamily   : 'Open Sans',
-    preUnits         : 'Php.',
-    gridTextSize     : 10
-  });
-
+    // Render the combined sales chart
+    new Morris.Line({
+        element: 'line-chart-Sales',
+        resize: true,
+        data: <?php echo json_encode($salesData); ?>, // Pass the PHP array to JavaScript
+        xkey: 'y',
+        ykeys: ['realSales', 'predictedSales'],
+        labels: ['Real Sales', 'Predicted Sales'],
+        lineColors: ['#0d6efd', '#28a745'], // Define colors for the two lines
+        lineWidth: 2,
+        hideHover: 'auto',
+        gridTextColor: '#000000', // Black text color
+        pointSize: 4,
+        pointStrokeColors: ['#0d6efd', '#28a745'],
+        gridTextFamily: 'Open Sans', // Font for grid text
+        gridTextSize: 12,
+        behaveLikeLine: true,
+        xLabelAngle: 60,
+    });
 </script>

@@ -1,10 +1,14 @@
 <div id="back"></div>
-<!-- Log on to codeastro.com for more projects! -->
+<style type="text/css">
+
+
+
+</style>
 <div class="login-box">
 
   <div class="login-logo">
 
-    <img class="img-responsive" src="views/img/template/logo-blanco-bloque.png" style="padding: 30px 100px 0 100px">
+    <img class="img-responsive" src="views/img/template/logo.png" style="padding: 30px 100px ">
 
   </div>
 

@@ -76,131 +76,132 @@ static public function ctrUserLogin() {
 	CREATE USER
 	=============================================*/
 	
-	static public function ctrCreateUser(){
+static public function ctrCreateUser(){
 
-		if (isset($_POST["newUser"])) {
-			
-			if (preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["newName"]) &&
-				preg_match('/^[a-zA-Z0-9]+$/', $_POST["newUser"]) &&
-				preg_match('/^[a-zA-Z0-9]+$/', $_POST["newPasswd"])){
+    if (isset($_POST["newUser"])) {
+        
+        if (preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["newName"]) &&
+            preg_match('/^[a-zA-Z0-9]+$/', $_POST["newUser"])){
 
-				/*=============================================
-				VALIDATE IMAGE
-				=============================================*/
+            /*=============================================
+            VALIDATE IMAGE
+            =============================================*/
 
-				$photo = "";
-			
-				if (isset($_FILES["newPhoto"]["tmp_name"])){
+            // Set default image path
+            $photo = "views/img/users/default/prfplaceholder.png"; 
+            
+            // Check if a file was uploaded and not empty
+            if (isset($_FILES["newPhoto"]["tmp_name"]) && !empty($_FILES["newPhoto"]["tmp_name"])){
 
-					list($width, $height) = getimagesize($_FILES["newPhoto"]["tmp_name"]);
-					
-					$newWidth = 500;
-					$newHeight = 500;
+                list($width, $height) = getimagesize($_FILES["newPhoto"]["tmp_name"]);
+                
+                $newWidth = 500;
+                $newHeight = 500;
 
-					/*=============================================
-					Let's create the folder for each user
-					=============================================*/
+                /*=============================================
+                CREATE FOLDER FOR EACH USER IF NOT EXISTS
+                =============================================*/
 
-					$folder = "views/img/users/".$_POST["newUser"];
+                $folder = "views/img/users/".$_POST["newUser"];
 
-					mkdir($folder, 0755);
+                if (!file_exists($folder)) {
+                    mkdir($folder, 0755);
+                }
 
-					/*=============================================
-					PHP functions depending on the image
-					=============================================*/
+                /*=============================================
+                PROCESS IMAGE BASED ON TYPE
+                =============================================*/
 
-					if($_FILES["newPhoto"]["type"] == "image/jpeg"){
+                if ($_FILES["newPhoto"]["type"] == "image/jpeg") {
 
-						$randomNumber = mt_rand(100,999);
-						
-						$photo = "views/img/users/".$_POST["newUser"]."/".$randomNumber.".jpg";
-						
-						$srcImage = imagecreatefromjpeg($_FILES["newPhoto"]["tmp_name"]);
-						
-						$destination = imagecreatetruecolor($newWidth, $newHeight);
+                    $randomNumber = mt_rand(100,999);
+                    
+                    $photo = "views/img/users/".$_POST["newUser"]."/".$randomNumber.".jpg";
+                    
+                    $srcImage = imagecreatefromjpeg($_FILES["newPhoto"]["tmp_name"]);
+                    
+                    $destination = imagecreatetruecolor($newWidth, $newHeight);
 
-						imagecopyresized($destination, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                    imagecopyresized($destination, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
-						imagejpeg($destination, $photo);
+                    imagejpeg($destination, $photo);
 
-					}
+                } elseif ($_FILES["newPhoto"]["type"] == "image/png") {
 
-					if ($_FILES["newPhoto"]["type"] == "image/png") {
+                    $randomNumber = mt_rand(100,999);
+                    
+                    $photo = "views/img/users/".$_POST["newUser"]."/".$randomNumber.".png";
+                    
+                    $srcImage = imagecreatefrompng($_FILES["newPhoto"]["tmp_name"]);
+                    
+                    $destination = imagecreatetruecolor($newWidth, $newHeight);
 
-						$randomNumber = mt_rand(100,999);
-						
-						$photo = "views/img/users/".$_POST["newUser"]."/".$randomNumber.".png";
-						
-						$srcImage = imagecreatefrompng($_FILES["newPhoto"]["tmp_name"]);
-						
-						$destination = imagecreatetruecolor($newWidth, $newHeight);
+                    imagecopyresized($destination, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
-						imagecopyresized($destination, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+                    imagepng($destination, $photo);
+                }
+            }
 
-						imagepng($destination, $photo);
-					}
+            $table = 'users';
 
-				}
+            $encryptpass = crypt($_POST["newPasswd"], '$2a$07$asxx54ahjppf45sd87a5a4dDDGsystemdev$');
 
-				$table = 'users';
+            $data = array('name' => $_POST["newName"],
+                          'user' => $_POST["newUser"],
+                          'password' => $encryptpass,
+                          'profile' => $_POST["newProfile"],
+                          'photo' => $photo);
 
-				$encryptpass = crypt($_POST["newPasswd"], '$2a$07$asxx54ahjppf45sd87a5a4dDDGsystemdev$');
+            $answer = UsersModel::mdlAddUser($table, $data);
 
-				$data = array('name' => $_POST["newName"],
-							  'user' => $_POST["newUser"],
-								'password' => $encryptpass,
-								'profile' => $_POST["newProfile"],
-								'photo' => $photo);
+            if ($answer == 'ok') {
 
-				$answer = UsersModel::mdlAddUser($table, $data);
+                echo '<script>
+                
+                swal({
+                    type: "success",
+                    title: "User added successfully!",
+                    showConfirmButton: true,
+                    confirmButtonText: "Close"
 
-				if ($answer == 'ok') {
+                }).then(function(result){
 
-						echo '<script>
-						
-						swal({
-							type: "success",
-							title: "User added succesfully!",
-							showConfirmButton: true,
-							confirmButtonText: "Close"
+                    if(result.value){
 
-						}).then(function(result){
+                        window.location = "users";
+                    }
 
-							if(result.value){
+                });
+                
+                </script>';
 
-								window.location = "users";
-							}
+            }
+        
+        } else {
 
-						});
-						
-						</script>';
+            echo '<script>
+                
+                swal({
+                    type: "error",
+                    title: "No special characters or blank fields",
+                    showConfirmButton: true,
+                    confirmButtonText: "Close"
+        
+                }).then(function(result){
 
-				}
-			
-			}else{
+                    if(result.value){
 
-				echo '<script>
-					
-					swal({
-						type: "error",
-						title: "No special characters or blank fields",
-						showConfirmButton: true,
-						confirmButtonText: "Close"
-			
-						}).then(function(result){
+                        window.location = "users";
+                    }
 
-							if(result.value){
+                });
+                
+            </script>';
+        }
+        
+    }
+}
 
-								window.location = "users";
-							}
-
-						});
-					
-				</script>';
-			}
-			
-		}
-	}
 
 	/*=============================================
 	SHOW USER

@@ -27,7 +27,7 @@ $totalProducts = count($products);
       
       <h3>₱<?php echo number_format($sales["total"],2); ?></h3>
 
-      <p>Sales</p>
+      <p>Total Sales</p>
     
     </div>
     
@@ -78,29 +78,29 @@ $totalProducts = count($products);
 
  
 <div class="col-lg-4 col-xs-6">
-
+	 
   <div class="small-box bg-primary">
-  
-    <div class="inner">
     
-      <h3><?php echo number_format($totalProducts); ?></h3>
+    <div class="inner">
+      
+      <h3>₱<?php echo number_format($sales["total"],2); ?></h3>
 
-      <p>products</p>
+      <p>Total Income</p>
     
     </div>
     
     <div class="icon">
       
-      <i class="ion ion-ios-cart"></i>
+      <i class="fa fa-money"></i>
     
     </div>
     
-    <a href="products" class="small-box-footer">
+    <a href="sales" class="small-box-footer">
       
       More info <i class="fa fa-arrow-circle-right"></i>
     
     </a>
 
   </div>
-	 
+
 </div>

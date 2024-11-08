@@ -7,7 +7,10 @@ class ControllerIngredients {
     =============================================*/
 
     static public function ctrCreateIngredient() {
-        if (isset($_POST['newIngredient']) && isset($_POST['newQuantity']) && isset($_POST['newSize'])) {
+        if (isset($_POST['newIngredient']) && isset($_POST['newQuantity']) && isset($_POST['newSize'])
+        && isset($_POST['newPrice'])
+        && isset($_POST['stockalert'])
+        && isset($_POST['newMeasurement'])) {
 
             // Validate ingredient name, quantity, and size
             if (preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["newIngredient"]) && 
@@ -19,7 +22,10 @@ class ControllerIngredients {
                 $data = array(
                     'ingredient' => $_POST['newIngredient'], // Updated field name
                     'quantity'   => $_POST['newQuantity'],   // Updated field name
-                    'size'       => $_POST['newSize']        // Updated field name
+                    'size'       => $_POST['newSize'] ,
+                    'addons_price'       => $_POST['newPrice'] , 
+                    'addons_measurement'     => $_POST['newMeasurement'] ,
+                    'stockalert'       => $_POST['stockalert']           
                 );
 
                 $answer = IngredientsModel::mdlAddIngredient($table, $data); // Update the model method to add ingredients

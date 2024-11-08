@@ -13,14 +13,14 @@ if($_SESSION["profile"] == "Special"){
 }
 
 ?>
-<!-- Log on to codeastro.com for more projects! -->
+ 
 <div class="content-wrapper">
 
   <section class="content-header">
 
     <h1>
 
-      Sales Management
+     Point Of Sales
 
     </h1>
 
@@ -119,38 +119,11 @@ if($_SESSION["profile"] == "Special"){
                     =            CUSTOMER INPUT           =
                     ======================================-->
                   
-                    <!-- Log on to codeastro.com for more projects! -->
+                     
                     <div class="form-group">
 
-                      <!-- <div class="input-group">
-                        
-                        <span class="input-group-addon"><i class="fa fa-users"></i></span>
-                        <select class="form-control" name="selectCustomer" id="selectCustomer" required>
-                          
-                            <option value="">Select Customer</option>
-
-                            <?php 
-
-                            $item = null;
-                            $value = null;
-
-                            $customers = ControllerCustomers::ctrShowCustomers($item, $value);
-
-                            foreach ($customers as $key => $value) {
-                              echo '<option value="'.$value["id"].'">'.$value["name"].'</option>';
-                            }
-
-
-                            ?>
-
-                        </select>
-
-                        <span class="input-group-addon"><button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#modalAddCustomer" data-dismiss="modal">Add Customer</button></span>
-
-                      </div> -->
-
                     </div>
-					<!-- Log on to codeastro.com for more projects! -->
+					 
                     <!--=====================================
                     =            PRODUCT INPUT           =
                     ======================================-->
@@ -160,9 +133,58 @@ if($_SESSION["profile"] == "Special"){
 
 
                     </div>
+                  <button type="button" class="btn btn-primary" onclick="showAddonTable()" id="addonButton">Addons <i class="fa fa-plus"></i></button>
+       <table id="addonTable" class="table table-bordered table-hover table-striped dt-responsive addonTable" style="display: none;">
+    <thead>
+        <tr>
+            <th>Addons</th>
+            <th>Price per Addons</th>
+            <th>Actions</th>
+        </tr> 
+    </thead>
+ <tbody>
+    <?php
+    $item = null; 
+    $value = null;
+
+    $ingredients = ControllerIngredients::ctrShowIngredients($item, $value);
+
+    foreach ($ingredients as $key => $value) {
+  
+        if (strpos($value['ingredient'], 'Powder') !== false) {
+            continue;  // Skip this iteration
+        }
+
+        // Main addon row
+        echo '<tr>
+            <td class="text-uppercase">' . $value['ingredient'] . '</td>
+            <td>₱' . $value['addons_price'] . '</td>
+            <td>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary btnAddons recoverButtonaddons" idIngredient="' . $value["id"] . '" data-price="' . $value['addons_price'] . '" data-addon="' . $value['ingredient'] . '">
+                        <i class="fa fa-plus"></i> Add
+                    </button>
+                    <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-cog"></i> Options
+                    </button>
+                    <div class="dropdown-menu">
+                        <button type="button" class="dropdown-item btnAddons" idIngredient="' . $value["id"] . '" data-price="0" data-addon="' . $value['ingredient'] . '">
+                            No ' . $value['ingredient'] . '
+                        </button>
+                    </div>
+                </div>  
+            </td>
+        </tr>';
+    }
+    ?>
+</tbody>
+
+</table>
+
+
 
                     <input type="hidden" name="productsList" id="productsList">
-
+                    <input type="hidden" name="addonList" id="addonList">
                     <!--=====================================
                     =            ADD PRODUCT BUTTON          =
                     ======================================-->
@@ -192,21 +214,7 @@ if($_SESSION["profile"] == "Special"){
                           <tbody>
                             
                             <tr>
-                              
-                              <!-- <td style="width: 50%">
-
-                                <div class="input-group">
-                                  
-                                  <input type="number" class="form-control" name="newTaxSale" id="newTaxSale" placeholder="0" min="0" required>
-
-                                  <input type="hidden" name="newTaxPrice" id="newTaxPrice" required>
-
-                                  <input type="hidden" name="newNetPrice" id="newNetPrice" required>
-                                  
-                                  <span class="input-group-addon"><i class="fa fa-percent"></i></span>
-
-                                </div>
-                              </td> -->
+                  
 
                               <td style="width: 50%">
 
@@ -227,6 +235,8 @@ if($_SESSION["profile"] == "Special"){
                           </tbody>
 			
                         </table>
+
+                        
                         
                       </div>
 
@@ -251,7 +261,7 @@ if($_SESSION["profile"] == "Special"){
                               <option value="">-Select Payment Method-</option>
                               <option value="cash">Cash</option>
                                       <option value="Gcash">Gcash</option>
-                              <option value="CC/DC">Credit/Debit Card</option>
+                   
                       
 
 
@@ -287,6 +297,9 @@ if($_SESSION["profile"] == "Special"){
 
         </div>
 
+
+        
+
       </div>
 
 
@@ -294,7 +307,7 @@ if($_SESSION["profile"] == "Special"){
       =            PRODUCTS TABLE                   =
       =============================================-->
 
-		<!-- Log on to codeastro.com for more projects! -->
+		 
       <div class="col-lg-7 hidden-md hidden-sm hidden-xs">
         
           <div class="box box-default">
@@ -312,6 +325,7 @@ if($_SESSION["profile"] == "Special"){
                      <th style="width:10px">#</th>
                      <th>Image</th>
                      <th>Description</th>
+                      <th>Size</th>
                      <th>Actions</th>
                    </tr> 
 
@@ -322,101 +336,68 @@ if($_SESSION["profile"] == "Special"){
             </div>
 
           </div>
-
-
+      </div>
+    </div>
+  </section>
+</div>
+<div id="modalViewProduct" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      
+      <!-- HEADER -->
+      <div class="modal-header" style="background:#DD4B39; color:white">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">View Ingredients</h4>
       </div>
 
-    </div>
+      <!-- BODY -->
+      <div class="modal-body">
+        <div class="box-body">
 
-  </section>
-
-</div>
-
-
-<!--=====================================
-=            module add Customer            =
-======================================-->
-
-<!-- Modal -->
-<div id="modalAddCustomer" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-
-    <!-- Modal content-->
-    <div class="modal-content">
-      <form role="form" method="POST">
-        <div class="modal-header" style="background: #DD4B39; color: #fff">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Add Customer</h4>
-        </div>
-        <div class="modal-body">
-          <div class="box-body">
-
-            <!--Input name -->
-            <div class="form-group">
-              <div class="input-group">
-                <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                <input class="form-control input-lg" type="text" name="newCustomer" placeholder="Write name" required>
-              </div>
-            </div>
-
-            <!--Input id document -->
-            <div class="form-group">
-              <div class="input-group">
-                <span class="input-group-addon"><i class="fa fa-key"></i></span>
-                <input class="form-control input-lg" type="number" min="0" name="newIdDocument" placeholder="Write your ID" required>
-              </div>
-            </div>
-
-            <!--Input email -->
-            <div class="form-group">
-              <div class="input-group">
-                <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
-                <input class="form-control input-lg" type="text" name="newEmail" placeholder="Email" required>
-              </div>
-            </div>
-
-            <!--Input phone -->
-            <div class="form-group">
-              <div class="input-group">
-                <span class="input-group-addon"><i class="fa fa-phone"></i></span>
-                <input class="form-control input-lg" type="text" name="newPhone" placeholder="phone" data-inputmask="'mask':'(999) 999-9999'" data-mask required>
-              </div>
-            </div>
-
-            <!--Input address -->
-            <div class="form-group">
-              <div class="input-group">
-                <span class="input-group-addon"><i class="fa fa-map-marker"></i></span>
-                <input class="form-control input-lg" type="text" name="newAddress" placeholder="Address" required>
-              </div>
-            </div>
-
-
-            <!--Input phone -->
-            <div class="form-group">
-              <div class="input-group">
-                <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                <input class="form-control input-lg" type="text" name="newBirthdate" placeholder="Birth Date" data-inputmask="'alias': 'yyyy/mm/dd'" data-mask required>
-              </div>
-            </div>
-
+          <!-- Ingredients List -->
+          <div class="form-group">
+            <ul id="ingredientsList" class="list-group">
+            
+            </ul>
           </div>
+
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-success">Save Customer</button>
-        </div>
-      </form>
+      </div>
 
-      <?php
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">Close</button>
+      </div>
+ 
 
-        $createCustomer = new ControllerCustomers();
-        $createCustomer -> ctrCreateCustomer();
-
-      ?>
     </div>
-
   </div>
 </div>
+<script>
+function showAddonTable() {
+    var table = document.getElementById("addonTable");
+    var button = document.getElementById("addonButton");
 
-<!--====  End of module add Customer  ====-->
+    if (table.style.display === "none") {
+        table.style.display = "table";
+        button.innerHTML = 'Close Addons ';
+    } else {
+        table.style.display = "none";
+        button.innerHTML = 'Addons ';
+    }
+}
+
+    document.querySelectorAll('.btnAddons').forEach(button => {
+        button.addEventListener('click', function() {
+            const addonRow = this.closest('tr'); // Get the current row
+            const zeroPriceButton = addonRow.querySelector('.btnZeroPrice');
+            
+            // Show the zero price option by triggering the dropdown
+            if (zeroPriceButton) {
+                zeroPriceButton.click(); // Trigger the dropdown
+            }
+        });
+    });
+
+  
+</script>

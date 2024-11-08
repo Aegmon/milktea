@@ -88,8 +88,11 @@ body {
 }
 .content-wrapper {
   min-height: calc(100vh - 101px);
-  background-color: #ecf0f5;
-  z-index: 800;
+
+   background-image: url('views/img/template/bg.jpg');  
+    background-size: cover; /* Makes the image cover the entire div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat;
 }
 @media (max-width: 767px) {
   .content-wrapper {
@@ -150,6 +153,10 @@ body {
   margin-left: auto;
   padding-left: 15px;
   padding-right: 15px;
+     background-image: url('views/img/template/bg.jpg');  
+    background-size: cover; /* Makes the image cover the entire div */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat;
 }
 /* H1 - H6 font */
 h1,

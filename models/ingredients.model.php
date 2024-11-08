@@ -10,13 +10,15 @@ class IngredientsModel {
 
     static public function mdlAddIngredient($table, $data) {
         // Use a prepared statement to insert ingredient, quantity, and size
-        $stmt = Connection::connect()->prepare("INSERT INTO $table (ingredient, quantity, size) VALUES (:ingredient, :quantity, :size)");
+        $stmt = Connection::connect()->prepare("INSERT INTO $table (ingredient, quantity, size,addons_price,addons_measurement,stockalert) VALUES (:ingredient, :quantity, :size,:addons_price,:addons_measurement,:stockalert)");
 
         // Bind parameters for ingredient, quantity, and size
         $stmt->bindParam(":ingredient", $data['ingredient'], PDO::PARAM_STR);
-        $stmt->bindParam(":quantity", $data['quantity'], PDO::PARAM_INT);  // Assuming quantity is an integer
+        $stmt->bindParam(":quantity", $data['quantity'], PDO::PARAM_INT);  
         $stmt->bindParam(":size", $data['size'], PDO::PARAM_STR);
-
+        $stmt->bindParam(":addons_price", $data['addons_price'], PDO::PARAM_INT);  
+        $stmt->bindParam(":addons_measurement", $data['addons_measurement'], PDO::PARAM_INT);  
+                $stmt->bindParam(":stockalert", $data['stockalert'], PDO::PARAM_INT);  
         if ($stmt->execute()) {
             return 'ok';
         } else {
