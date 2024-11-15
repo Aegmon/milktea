@@ -20,7 +20,7 @@
 
       <div class="form-group has-feedback">
 
-        <input type="text" class="form-control" placeholder="Username" name="loginUser" required>
+        <input type="email" class="form-control" placeholder="Email" name="loginUser" required>
 
         <span class="glyphicon glyphicon-user form-control-feedback"></span>
 

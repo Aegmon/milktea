@@ -5,181 +5,125 @@
 <!DOCTYPE html>
 <html>
 <head>
-
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
   <title>Taipei Milk Tea</title>
-
-  <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-
   <link rel="icon" href="views/img/template/icono-negro.png">
 
-  <!--=================================
-  =            Plugins CSS            =
-  ==================================-->
-  <!-- Bootstrap 3.3.7 -->
+  <!-- Plugin CSS -->
   <link rel="stylesheet" href="views/bower_components/bootstrap/dist/css/bootstrap.min.css">
-
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="views/bower_components/font-awesome/css/font-awesome.min.css">
-
-  <!-- Ionicons -->
   <link rel="stylesheet" href="views/bower_components/Ionicons/css/ionicons.min.css">
-  
-  <!-- Theme style -->
   <link rel="stylesheet" href="views/dist/css/AdminLTE.css">
-
-  <!-- AdminLTE Skins -->
-  <link rel="stylesheet" href="views/dist/css/skins/_all-skins.min.css"> 
-
-  <!-- Google Font -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic"> 
-
-   <!-- DataTables -->
+  <link rel="stylesheet" href="views/dist/css/skins/_all-skins.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
   <link rel="stylesheet" href="views/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
   <link rel="stylesheet" href="views/bower_components/datatables.net-bs/css/responsive.bootstrap.min.css">
-
-  <!-- iCheck for checkboxes and radio inputs -->
   <link rel="stylesheet" href="views/plugins/iCheck/all.css">
-
-  <!-- Daterange picker -->
   <link rel="stylesheet" href="views/bower_components/bootstrap-daterangepicker/daterangepicker.css">
-
-  <!-- Morris chart -->
   <link rel="stylesheet" href="views/bower_components/morris.js/morris.css">
-  
-  <!--====  End of Plugins CSS  ====-->
-  
-  <!--========================================
-  =            plugins javascript            =
-  =========================================-->
-  <!-- jQuery 3 -->
+
+  <!-- Plugin JS -->
   <script src="views/bower_components/jquery/dist/jquery.min.js"></script>
-
-  <!-- Bootstrap 3.3.7 -->
   <script src="views/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-
-  <!-- FastClick -->
   <script src="views/bower_components/fastclick/lib/fastclick.js"></script>
-
-  <!-- AdminLTE App -->
   <script src="views/dist/js/adminlte.min.js"></script>
-
-   <!-- DataTables -->
   <script src="views/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
   <script src="views/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
   <script src="views/bower_components/datatables.net-bs/js/dataTables.responsive.min.js"></script>
   <script src="views/bower_components/datatables.net-bs/js/responsive.bootstrap.min.js"></script>
-
-  <!-- sweet alert -->
   <script src="views/plugins/sweetalert2/sweetalert2.all.js"></script>
-
-  <!-- By default sweetalert2 doesn't support IE. To enable IE 11 support, include Promise polyfill -->
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.js"></script>
-
-  <!-- iCheck 1.0.1 -->
   <script src="views/plugins/iCheck/icheck.min.js"></script>
-  <!-- InputMask -->
   <script src="views/plugins/input-mask/jquery.inputmask.js"></script>
   <script src="views/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
   <script src="views/plugins/input-mask/jquery.inputmask.extensions.js"></script>
-  <!-- jQuery Number -->
   <script src="views/plugins/jqueryNumber/jquerynumber.min.js"></script>
-
-  <!-- daterangepicker http://www.daterangepicker.com/-->
   <script src="views/bower_components/moment/min/moment.min.js"></script>
   <script src="views/bower_components/bootstrap-daterangepicker/daterangepicker.js"></script>
-
-
-  <!-- Morris.js charts http://morrisjs.github.io/morris.js/-->
   <script src="views/bower_components/raphael/raphael.min.js"></script>
   <script src="views/bower_components/morris.js/morris.min.js"></script>
-
-  <!-- ChartJS http://www.chartjs.org/-->
   <script src="views/bower_components/Chart.js/Chart.js"></script>
-  
+
 </head>
 
-<body class="hold-transition skin-black-light  sidebar-mini login-page" style="    background-image: url('views/img/template/bg.jpg');   background-size: cover; /* Makes the image cover the entire div */
-    background-position: center; /* Centers the image */
-    background-repeat: no-repeat;">
+<body class="hold-transition skin-black-light sidebar-mini login-page" style="background-image: url('views/img/template/bg.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
 
 <!-- Site wrapper -->
 
-  <?php
+<?php
 
-    if(isset($_SESSION["loggedIn"]) && $_SESSION["loggedIn"] == "ok"){
+  if(isset($_SESSION["loggedIn"]) && $_SESSION["loggedIn"] == "ok"){
+ if ($_GET["route"] == 'otp') {
+        include "modules/otp.php";
+    }
+    // Check if OTP is required (e.g., the user is not yet verified)
+    if (isset($_SESSION["otp_verified"]) && $_SESSION["otp_verified"] != "yes") {
+        // Redirect to OTP page if OTP is not verified
+        include "modules/otp.php";
+    } else {
 
-      echo '<div class="wrapper">';
+        echo '<div class="wrapper">';
 
-      /*=============================================
-      =            header          =
-      =============================================*/  
+        /*=============================================
+        =            header          =
+        =============================================*/  
+        include "modules/header.php";
 
-      include "modules/header.php";
+        /*=============================================
+        =            sidebar          =
+        =============================================*/ 
+        include "modules/sidebar.php";
 
-      /*=============================================
-      =            sidebar          =
-      =============================================*/ 
+        /*=============================================
+        =            Content          =
+        =============================================*/ 
+        if(isset($_GET["route"])){
 
-      include "modules/sidebar.php";
+            if ($_GET["route"] == 'home' || 
+                $_GET["route"] == 'users' ||
+                $_GET["route"] == 'categories' ||
+                $_GET["route"] == 'products' ||
+                $_GET["route"] == 'addproducts' ||
+                $_GET["route"] == 'customers' ||
+                $_GET["route"] == 'sales' ||
+                $_GET["route"] == 'create-sale' ||
+                $_GET["route"] == 'edit-sale' ||
+                $_GET["route"] == 'reports' ||
+                $_GET["route"] == 'ingredients' ||
+                $_GET["route"] == 'attributes' ||
+                
+                $_GET["route"] == 'logout'){
 
-      /*=============================================
-      =            Content          =
-      =============================================*/ 
+            include "modules/".$_GET["route"].".php";
 
-      if(isset($_GET["route"])){
+            }else{
 
-        if ($_GET["route"] == 'home' || 
-            $_GET["route"] == 'users' ||
-            $_GET["route"] == 'categories' ||
-            $_GET["route"] == 'products' ||
-            $_GET["route"] == 'addproducts' ||
-            $_GET["route"] == 'customers' ||
-            $_GET["route"] == 'sales' ||
-            $_GET["route"] == 'create-sale' ||
-            $_GET["route"] == 'edit-sale' ||
-            $_GET["route"] == 'reports' ||
-            $_GET["route"] == 'ingredients' ||
-            $_GET["route"] == 'attributes' ||
-            $_GET["route"] == 'logout'){
+                include "modules/404.php";
 
-          include "modules/".$_GET["route"].".php";
+            }
 
         }else{
-
-           include "modules/404.php";
-        
+            include "modules/home.php";
         }
 
-      }else{
+        /*=============================================
+        =            Footer          =
+        =============================================*/ 
+        include "modules/footer.php";
 
-        include "modules/home.php";
-      
-      }
- 
-      /*=============================================
-      =            Footer          =
-      =============================================*/ 
+        echo '</div>';
 
-      include "modules/footer.php";
-
-      echo '</div>';
-
-    }else{
-       /*=============================================
-      =            login          =
-      =============================================*/ 
-
-      include "modules/login.php";
     }
-        
-  ?>
 
-  
+  } else {
+      include "modules/login.php";
+  }
+?>
+
 <!-- ./wrapper -->
+
 <script src="views/js/attribute.js"></script>
 <script src="views/js/ingredients.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

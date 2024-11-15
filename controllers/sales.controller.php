@@ -664,7 +664,21 @@ static public function ctrUpdateAddonIngredients($ingredientId, $quantityPurchas
 		return $answer;
 
 	}
+public function ctrAddingSalesByDate($timePeriod)
+{
+    $pdo = Connection::connect(); // Database connection
 
+    $dateQuery = "";
+    if ($timePeriod == 'today') {
+        $dateQuery = "DATE(saledate) = CURDATE()"; // Today's date
+    } elseif ($timePeriod == 'week') {
+        $dateQuery = "YEARWEEK(saledate, 1) = YEARWEEK(CURDATE(), 1)"; // This week
+    }
+
+    $stmt = $pdo->prepare("SELECT SUM(totalPrice) AS total FROM sales WHERE $dateQuery");
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
 	/*=============================================
 	DOWNLOAD XML
 	=============================================*/

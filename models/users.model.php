@@ -91,26 +91,29 @@ class UsersModel {
     UPDATE USER 
     =============================================*/
 
-    public static function mdlUpdateUser(string $table, string $item1, $value1, string $item2, $value2): string {
+public static function mdlUpdateUser(string $table, string $item1, $value1, string $item2, $value2): string {
+    // Prepare the SQL statement for updating the OTP or other user data
+    $stmt = Connection::connect()->prepare(
+        "UPDATE $table SET $item1 = :$item1 WHERE $item2 = :$item2"
+    );
 
-        $stmt = Connection::connect()->prepare(
-            "UPDATE $table SET $item1 = :$item1 WHERE $item2 = :$item2"
-        );
+    // Bind the parameters for the statement
+    $stmt->bindParam(":".$item1, $value1, PDO::PARAM_STR);
+    $stmt->bindParam(":".$item2, $value2, PDO::PARAM_STR);
 
-        $stmt->bindParam(":".$item1, $value1, PDO::PARAM_STR);
-        $stmt->bindParam(":".$item2, $value2, PDO::PARAM_STR);
-
-        if ($stmt->execute()) {
-            $result = 'ok';
-        } else {
-            $result = 'error';
-        }
-
-        // Clean up
-        $stmt = null;
-
-        return $result;
+    // Execute the statement and check for success
+    if ($stmt->execute()) {
+        $result = 'ok'; // If update is successful
+    } else {
+        $result = 'error'; // If update fails
     }
+
+    // Clean up
+    $stmt = null;
+
+    return $result;
+}
+
 
     /*=============================================
     DELETE USER 

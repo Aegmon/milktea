@@ -35,8 +35,8 @@ if ($_SESSION["profile"] == "Seller") {
                         <tr>
                             <th style="width:10px">#</th>
                             <th>Ingredient</th>
+                            <th>Stock</th>
                             <th>Measurement</th>
-                            <th>Size</th>
                             <th>Price per Addons</th>
                             <th>Measurement per Addons</th>
                             <th>Actions</th>
@@ -55,15 +55,14 @@ if ($_SESSION["profile"] == "Seller") {
                             $quantity = $value['quantity'];
                             $badgeClass = '';
 
-                            // Determine badge color based on quantity
-                            if ($quantity > ($stockAlert * 1.5)) {
-                                $badgeClass = 'btn-success'; // More than 50% higher
-                            } elseif ($quantity >= ($stockAlert * 0.5)) {
-                                $badgeClass = 'btn-warning'; // Between 50% and 100%
-                            } elseif ($quantity >= ($stockAlert * 0.25)) {
-                                $badgeClass = 'btn-danger'; // Between 25% and 50%
+                          $percentage = ($quantity / $stockAlert) * 100; // Calculate the percentage
+
+                            if ($percentage >= 51) {
+                                $badgeClass = 'btn-success'; // 51% and above (Green)
+                            } elseif ($percentage >= 35) {
+                                $badgeClass = 'btn-warning'; // 35% to 50% (Yellow)
                             } else {
-                                $badgeClass = 'btn-danger'; // Below 25%
+                                $badgeClass = 'btn-danger'; // Below 35% (Red)
                             }
 
                             // Display alert if stock is low

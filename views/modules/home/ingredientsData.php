@@ -226,8 +226,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getPastelColor(index) {
         const pastelColors = [
-            '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF',
-            '#D7BAFF', '#FFCBA4', '#FFABAB', '#C1E1C1', '#C7CEEA'
+               '#FF5733', '#FFBD33', '#33FF57', '#33FFBD', '#5733FF', 
+        '#FF33A1', '#A133FF', '#FF8C33', '#33FF8C', '#8C33FF',
+        '#FF33FF', '#33A1FF', '#FF5733', '#33FF57', '#A1FF33'
         ];
         return pastelColors[index % pastelColors.length];
     }

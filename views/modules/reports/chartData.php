@@ -31,6 +31,12 @@ $stmt = $pdo->prepare("SELECT * FROM products WHERE $dateQuery ORDER BY sales DE
 $stmt->execute();
 $products = $stmt->fetchAll();
 
+// Fetch total sales for the selected date range
+$salesTotalStmt = $pdo->prepare("SELECT SUM(sales) AS total FROM products WHERE $dateQuery");
+$salesTotalStmt->execute();
+$salesTotal = $salesTotalStmt->fetch(PDO::FETCH_ASSOC);
+$salesTotalValue = $salesTotal['total'] ?? 0; // Use null coalescing operator to avoid undefined index
+
 // Colors for the pie chart
 $colours = array(
     "#ADD8E6", // Light Blue
@@ -55,9 +61,10 @@ foreach ($products as $i => $product) {
     ];
 }
 
-// Send the JSON response with the products and colours data
+// Send the JSON response with the products, colours, and total sales data
 echo json_encode([
     'products' => $productData,
-    'colours' => $colours
+    'colours' => $colours,
+    'salesTotalValue' => $salesTotalValue,  // Include the total sales value
 ]);
 ?>

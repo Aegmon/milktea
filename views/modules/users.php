@@ -180,7 +180,7 @@
 
                 <span class="input-group-addon"><i class="fa fa-key"></i></span>
 
-                <input class="form-control input-lg" type="text" id="newUser" name="newUser" placeholder="Enter username" required>
+                <input class="form-control input-lg" type="email" id="newUser" name="newUser" placeholder="Email Address" required>
 
               </div>
 

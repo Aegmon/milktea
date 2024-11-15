@@ -29,9 +29,16 @@ $products = $stmt->fetchAll();
 
 // Colors for the pie chart
 $colours = array(
-    '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF',
-    '#D7BAFF', '#FFCBA4', '#FFABAB', '#C1E1C1', '#C7CEEA'
+    '#FF5733', '#FFBD33', '#33FF57', '#33FFBD', '#FF33A1', 
+    '#A133FF', '#FF8C33', '#33FF8C', '#FF33FF', '#FFC300', 
+    '#6A4CFF', '#FF6347', '#FF1493', '#00FA9A', '#FFD700', 
+    '#DA70D6', '#32CD32', '#DC143C', '#F08080', '#8A2BE2', 
+    '#FF4500', '#8B0000', '#7FFF00', '#D2691E', '#FFFF00', 
+    '#20B2AA', '#8B008B', '#00BFFF', '#FF69B4', '#C71585',
+    '#F4A300', '#7CFC00', '#FF6347', '#3CB371', '#FF1493'
 );
+
+
 
 // Calculate total sales for the selected time range
 $salesTotalStmt = $pdo->prepare("SELECT SUM(sales) AS total FROM products WHERE $dateQuery");
@@ -43,6 +50,14 @@ $salesTotalValue = $salesTotal["total"] ?? 0; // Use null coalescing operator to
 if ($salesTotalValue == 0) {
     $salesTotalValue = 1; // To avoid division by zero errors
 }
+
+// Return the required data in JSON format
+$response = [
+    'products' => $products,
+    'salesTotalValue' => $salesTotalValue,
+    'colours' => $colours
+];
+
 ?>
 
 <div class="box box-default">
@@ -95,19 +110,25 @@ if ($salesTotalValue == 0) {
                 }
 
                 // Prepare the pie chart data
-                var PieData = data.products.map((product, index) => {
-                    // Calculate percentage and handle potential zero values
-                    var salesPercentage = 0;
-                    if (data.salesTotalValue > 0) {
-                        salesPercentage = ((product.sales * 100) / data.salesTotalValue).toFixed(1);
-                    }
-                    return {
-                        value: product.sales,
-                        color: data.colours[index],
-                        label: product.description + ' (' + salesPercentage + '%)',
-                        percentage: salesPercentage
-                    };
-                });
+          var PieData = data.products.map((product, index) => {
+    var salesPercentage = 0;
+    if (data.salesTotalValue > 0 && product.sales > 0) {
+        salesPercentage = ((product.sales * 100) / data.salesTotalValue).toFixed(1);
+    }
+    if (isNaN(salesPercentage) || salesPercentage === Infinity || salesPercentage === -Infinity) {
+        salesPercentage = 0;
+    }
+
+    var color = product.sales === 0 ? '#D3D3D3' : data.colours[index];
+
+    return {
+        value: product.sales,
+        color: color,
+        label: product.description + ' (' + salesPercentage + '%)',
+        percentage: salesPercentage
+    };
+});
+
 
                 // Create a new chart instance
                 pieChart = new Chart(pieChartCanvas, {
@@ -119,6 +140,7 @@ if ($salesTotalValue == 0) {
                             label: 'Sales Data'
                         }],
                         labels: PieData.map(item => item.label)
+                        
                     },
                     options: {
                         cutout: '50%', // For inner cutout similar to pie
@@ -136,7 +158,7 @@ if ($salesTotalValue == 0) {
                         }
                     }
                 });
-
+console.log(PieData.map(item => item.color));
                 // Update the product list
                 var productList = document.getElementById('productList');
                 productList.innerHTML = ''; // Clear the current list

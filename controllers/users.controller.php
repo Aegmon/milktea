@@ -6,11 +6,11 @@ class ControllerUsers{
 	USER LOGIN
 	=============================================*/
 	
-static public function ctrUserLogin() {
+public static function ctrUserLogin() {
     if (isset($_POST["loginUser"])) {
         
-        if (preg_match('/^[a-zA-Z0-9]+$/', $_POST["loginUser"]) && 
-            preg_match('/^[a-zA-Z0-9]+$/', $_POST["loginPass"])) {
+ if (preg_match('/^[a-zA-Z0-9@._-]+$/', $_POST["loginUser"]) && 
+    preg_match('/^[a-zA-Z0-9]+$/', $_POST["loginPass"])) {
 
             $encryptpass = crypt($_POST["loginPass"], '$2a$07$asxx54ahjppf45sd87a5a4dDDGsystemdev$');
             
@@ -24,6 +24,7 @@ static public function ctrUserLogin() {
 
                 if ($answer["status"] == 1) {
                     $_SESSION["loggedIn"] = "ok";
+                    $_SESSION["otp_verified"] = "no"; // Default OTP status is not verified
                     $_SESSION["id"] = $answer["id"];
                     $_SESSION["name"] = $answer["name"];
                     $_SESSION["user"] = $answer["user"];
@@ -32,7 +33,7 @@ static public function ctrUserLogin() {
 
                     /*=============================================
                     Register date to know last_login
-                    =============================================*/
+                    =============================================*/  
                     date_default_timezone_set("Asia/Manila");
 
                     $date = date('Y-m-d');
@@ -45,18 +46,58 @@ static public function ctrUserLogin() {
                     $item2 = "id";
                     $value2 = $answer["id"];
 
+                    // Update last login date
                     $lastLogin = UsersModel::mdlUpdateUser($table, $item1, $value1, $item2, $value2);
 
                     if ($lastLogin == "ok") {
-                        // Redirect based on user profile
-                        if ($answer["profile"] == "Employee") {
-                            echo '<script>
-                                window.location = "create-sale";
-                            </script>';
+                        // Generate OTP
+                        $otp = rand(100000, 999999);  // 6-digit OTP
+                        $otpExpiry = date('Y-m-d H:i:s', strtotime('+5 minutes')); // OTP expiry time (10 minutes from now)
+
+                        // Update OTP and expiry in database
+                        $updateQuery = "UPDATE users SET otp = :otp, otpexpiry = :otpexpiry WHERE id = :id";
+                        $stmt = Connection::connect()->prepare($updateQuery);
+
+                        // Bind parameters for OTP and OTP expiry
+                        $stmt->bindParam(":otp", $otp, PDO::PARAM_INT);
+                        $stmt->bindParam(":otpexpiry", $otpExpiry, PDO::PARAM_STR);
+                        $stmt->bindParam(":id", $answer["id"], PDO::PARAM_INT);
+
+                        if ($stmt->execute()) {
+                            // Send OTP to user's email
+                            // $email = $answer["user"];
+                            // $subject = "Your OTP for Login";
+                            // $message = "
+                            //     <html>
+                            //         <head>
+                            //             <title>Your OTP for Login</title>
+                            //         </head>
+                            //         <body>
+                            //             <p>Hello " . $answer["name"] . ",</p>
+                            //             <p>Your One-Time Password (OTP) is <b>" . $otp . "</b></p>
+                            //             <p>This OTP will expire in 5 minutes.</p>
+                            //         </body>
+                            //     </html>
+                            // ";
+
+                         
+                            // $from = "noreply@taipeiroyaltea.com";
+                            // $headers = "MIME-Version: 1.0" . "\r\n";
+                            // $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+                            // $headers .= "From: " . $from . "\r\n";
+
+                            // // Send the email
+                            // if (mail($email, $subject, $message, $headers)) {
+                            //     // Redirect to OTP page
+                                echo '<script>
+                                      window.location = "home";
+                                  </script>';
+                            // } else {
+                            //     echo '<br><div class="alert alert-danger">Failed to send OTP email.</div>';
+                            // }
+
                         } else {
-                            echo '<script>
-                                window.location = "home";
-                            </script>';
+                            echo '<br><div class="alert alert-danger">Failed to update OTP</div>';
                         }
                     }
 
@@ -72,6 +113,8 @@ static public function ctrUserLogin() {
 }
 
 
+
+
 	/*=============================================
 	CREATE USER
 	=============================================*/
@@ -80,8 +123,8 @@ static public function ctrCreateUser(){
 
     if (isset($_POST["newUser"])) {
         
-        if (preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ ]+$/', $_POST["newName"]) &&
-            preg_match('/^[a-zA-Z0-9]+$/', $_POST["newUser"])){
+    if (preg_match('/^[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ .,_-]+$/', $_POST["newName"]) && 
+    preg_match('/^[a-zA-Z0-9@._-]+$/', $_POST["newUser"])) {
 
             /*=============================================
             VALIDATE IMAGE

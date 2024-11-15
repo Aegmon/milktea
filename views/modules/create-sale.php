@@ -142,42 +142,44 @@ if($_SESSION["profile"] == "Special"){
             <th>Actions</th>
         </tr> 
     </thead>
- <tbody>
-    <?php
-    $item = null; 
-    $value = null;
+<tbody>
+<?php
+$item = null; 
+$value = null;
 
-    $ingredients = ControllerIngredients::ctrShowIngredients($item, $value);
+$ingredients = ControllerIngredients::ctrShowIngredients($item, $value);
 
-    foreach ($ingredients as $key => $value) {
-  
-        if (strpos($value['ingredient'], 'Powder') !== false) {
-            continue;  // Skip this iteration
-        }
+foreach ($ingredients as $key => $value) {
 
-        // Main addon row
-        echo '<tr>
-            <td class="text-uppercase">' . $value['ingredient'] . '</td>
-            <td>₱' . $value['addons_price'] . '</td>
-            <td>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary btnAddons recoverButtonaddons" idIngredient="' . $value["id"] . '" data-price="' . $value['addons_price'] . '" data-addon="' . $value['ingredient'] . '">
-                        <i class="fa fa-plus"></i> Add
-                    </button>
-                    <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-cog"></i> Options
-                    </button>
-                    <div class="dropdown-menu">
-                        <button type="button" class="dropdown-item btnAddons" idIngredient="' . $value["id"] . '" data-price="0" data-addon="' . $value['ingredient'] . '">
-                            No ' . $value['ingredient'] . '
-                        </button>
-                    </div>
-                </div>  
-            </td>
-        </tr>';
+    // Skip ingredients that contain "Powder" in their name
+    if (stripos($value['ingredient'], 'Powder') !== false) {
+        continue;  // Skip this iteration
     }
-    ?>
+
+    // Main addon row
+    echo '<tr>
+        <td class="text-uppercase">' . $value['ingredient'] . '</td>
+        <td>₱' . $value['addons_price'] . '</td>
+        <td>
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary btnAddons recoverButtonaddons" idIngredient="' . $value["id"] . '" data-price="' . $value['addons_price'] . '" data-addon="' . $value['ingredient'] . '">
+                    <i class="fa fa-plus"></i> Add
+                </button>
+                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-cog"></i> Options
+                </button>
+                <div class="dropdown-menu">
+                    <button type="button" class="dropdown-item btnAddons" idIngredient="' . $value["id"] . '" data-price="0" data-addon="' . $value['ingredient'] . '">
+                        No ' . $value['ingredient'] . '
+                    </button>
+                </div>
+            </div>  
+        </td>
+    </tr>';
+}
+?>
 </tbody>
+
 
 </table>
 
